@@ -2,42 +2,48 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: DataSunrise Database and Data Security - Network Load Balancer universal template
 Mappings:
   RegionMap:
-    eu-north-1:
-      AMI: ami-0c94585701e56a572
-    ap-south-1:
-      AMI: ami-0a28180258ce80101
-    eu-west-3:
-      AMI: ami-0f3313c1aae2e50c5
-    eu-west-2:
-      AMI: ami-0c37a438c03dcf255
-    eu-west-1:
-      AMI: ami-061eb13ba2c00c708
-    ap-northeast-2:
-      AMI: ami-0ed79d70f5c29c6c0
-    me-south-1:
-      AMI: ami-0c57b06f164e67120
-    ap-northeast-1:
-      AMI: ami-0ca08228f7bb80965
-    sa-east-1:
-      AMI: ami-083f73ff088c864de
-    ca-central-1:
-      AMI: ami-0a660ec80e65e3ade
-    ap-east-1:
-      AMI: ami-07cfd2c23e5598b9a
-    ap-southeast-1:
-      AMI: ami-0b30c2c8ec15ecba7
-    ap-southeast-2:
-      AMI: ami-014342f83ec89b3f7
     eu-central-1:
-      AMI: ami-0356dd1e2d2784df0
+        AMI: ami-032b0545366e01267
+    eu-north-1:
+        AMI: ami-087a4fdc34c6253c0
+    ap-south-1:
+        AMI: ami-0dc87d30b1af33c81
+    eu-west-3:
+        AMI: ami-05504b45b4f5f3a55
+    eu-west-2:
+        AMI: ami-0149df4b4affaf2a1
+    eu-west-1:
+        AMI: ami-0be41038373d4e1e0
+    ap-northeast-3:
+        AMI: ami-01d03acf25482ffbf
+    ap-northeast-2:
+        AMI: ami-0c528a7181afcfaa8
+    me-south-1:
+        AMI: ami-087140d75740ac8b7
+    ap-northeast-1:
+        AMI: ami-006232425a4d050f1
+    sa-east-1:
+        AMI: ami-0d574ee20449cab7c
+    ca-central-1:
+        AMI: ami-0ba11a9abf746e8d6
+    ap-east-1:
+        AMI: ami-0ac6aa9617046dc20
+    eu-south-1:
+        AMI: ami-0bea1236490a4be08
+    af-south-1:
+        AMI: ami-06b96c6bbd72ab2bf        
+    ap-southeast-1:
+        AMI: ami-05f478795eb6d77d9
+    ap-southeast-2:
+        AMI: ami-068ac8f2a397260a4
     us-east-1:
-      AMI: ami-024dd49eb9aa04034
+        AMI: ami-08ee6b1e472025ff6
     us-east-2:
-      AMI: ami-06b7f5942e054ac36
+        AMI: ami-085afe68e7af36dc2
     us-west-1:
-      AMI: ami-0b6f04ebac16cf6ef
+        AMI: ami-00217b05e07d7a073
     us-west-2:
-      AMI: ami-0ea23a31a8c025a77
+        AMI: ami-0704faeae72bbca87
   Consts:
     V1:
       AMIProductCode: e4d3d3b6266ocd12it8gny7gh
