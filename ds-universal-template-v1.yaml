@@ -3,47 +3,41 @@ Description: DataSunrise Database and Data Security - Network Load Balancer univ
 Mappings:
   RegionMap:
     eu-central-1:
-      AMI: ami-032b0545366e01267
+      AMI: ami-045913ce519b70a48
     eu-north-1:
-      AMI: ami-087a4fdc34c6253c0
+      AMI: ami-08c254d5c04dbb8c7
     ap-south-1:
-      AMI: ami-0dc87d30b1af33c81
+      AMI: ami-0373ab8f9a356f469
     eu-west-3:
-      AMI: ami-05504b45b4f5f3a55
+      AMI: ami-04c5e7d1994a0f374
     eu-west-2:
-      AMI: ami-0149df4b4affaf2a1
+      AMI: ami-02fd72800f6a2194f
     eu-west-1:
-      AMI: ami-0be41038373d4e1e0
-    ap-northeast-3:
-      AMI: ami-01d03acf25482ffbf
+      AMI: ami-099c2e0abc37bc9f7
     ap-northeast-2:
-      AMI: ami-0c528a7181afcfaa8
+      AMI: ami-040ca32a233c5656e
     me-south-1:
-      AMI: ami-087140d75740ac8b7
+      AMI: ami-046ab63c5443fd5b2
     ap-northeast-1:
-      AMI: ami-006232425a4d050f1
+      AMI: ami-064bee0facd8d5e7b
     sa-east-1:
-      AMI: ami-0d574ee20449cab7c
+      AMI: ami-086183c4ab007c6c1
     ca-central-1:
-      AMI: ami-0ba11a9abf746e8d6
+      AMI: ami-08a6925b5f874dbff
     ap-east-1:
-      AMI: ami-0ac6aa9617046dc20
-    eu-south-1:
-      AMI: ami-0bea1236490a4be08
-    af-south-1:
-      AMI: ami-06b96c6bbd72ab2bf
+      AMI: ami-091ba237601823823
     ap-southeast-1:
-      AMI: ami-05f478795eb6d77d9
+      AMI: ami-0555a99cda066bd75
     ap-southeast-2:
-      AMI: ami-068ac8f2a397260a4
+      AMI: ami-0f4f649ea8bbdd8fb
     us-east-1:
-      AMI: ami-08ee6b1e472025ff6
+      AMI: ami-0534417696f9bf997
     us-east-2:
-      AMI: ami-085afe68e7af36dc2
+      AMI: ami-03303624683ba9150
     us-west-1:
-      AMI: ami-00217b05e07d7a073
+      AMI: ami-037fdc93490f0d215
     us-west-2:
-      AMI: ami-0704faeae72bbca87
+      AMI: ami-04d996a7d3a799c33
   Consts:
     V1:
       AMIProductCode: e4d3d3b6266ocd12it8gny7gh
@@ -61,7 +55,7 @@ Mappings:
       myPort: '3306'
       msPort: '1433'
       AuditInternalParameterPg: '1'
-      AuditInternalParameterMy: '4'
+      AuditInternalParameterMy: '2'
       AuditInternalParameterMs: '6'
       DictionaryInternalParameterPg: postgresql
       DictionaryInternalParameterMy: mysql
@@ -362,17 +356,17 @@ Parameters:
       - Pacific/Wake
       - Pacific/Wallis
       - UTC
-  DictionaryType: 
+  DictionaryType:
     Type: String
     Default: Postgres
-    AllowedValues: 
+    AllowedValues:
       - Postgres
       - MySQL
       - MSSQL
   AuditType:
     Type: String
     Default: Postgres
-    AllowedValues: 
+    AllowedValues:
       - Postgres
       - MySQL
       - MSSQL
@@ -434,10 +428,10 @@ Parameters:
   DSAdminPassword:
     Type: String
     NoEcho: 'true'
-    Description: Password for DataSunrise administrator.
+    Description: The password must contain at least 8 characters, lower and upper case, numbers and special characters.
     MinLength: '8'
     MaxLength: '41'
-    AllowedPattern: .+
+    AllowedPattern: ^.*(?=.{8,})(?=.*[a-zA-Z])(?=.*\d)(?=.*[!#$%&? "]).*$
   DictionaryDBClass:
     Type: String
     Description: >-
@@ -938,7 +932,7 @@ Resources:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       GroupId: !Ref TDBSecurityGroup
-      IpProtocol: tcp 
+      IpProtocol: tcp
       FromPort: !Ref TDBPort
       ToPort: !Ref TDBPort
       SourceSecurityGroupId: !GetAtt EC2SG.GroupId
@@ -994,7 +988,6 @@ Resources:
               - !Join ['', [!Ref BucketKeyARN]]
   RDSDescribeInstancesPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
-    DependsOn: DSAuditDB
     Properties:
       PolicyDocument:
         Version: 2012-10-17
@@ -1003,7 +996,7 @@ Resources:
             Action:
               - 'rds:DescribeDBInstances'
             Resource:
-              - !Join ['',['arn:aws:rds:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':db:', !Ref DSAuditDB]]
+              - !Join ['',['arn:aws:rds:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':db:', !If [isNotAuroraCluster, !Ref DSAuditDB, !Ref DSAuditDBClusterNode]]]
   DSVMRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -1314,7 +1307,7 @@ Resources:
         awscommon:
           files:
             /opt/cooked/cf-params.sh:
-              content: !Sub 
+              content: !Sub
               - |
                 #!/bin/bash
 
@@ -1332,8 +1325,8 @@ Resources:
                     log $@
                     logSeparator
                 }
-
-                INST_ID=`curl -s http://169.254.169.254/latest/meta-data/instance-id`
+                TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+                INST_ID=`curl -s http://169.254.169.254/latest/meta-data/instance-id -H "X-aws-ec2-metadata-token: $TOKEN"`
                 CLOUD_INIT_LOG=/var/log/cloud-init-output.log
 
                 DSDISTURL="${DSDistributionUrl}"
@@ -1360,13 +1353,13 @@ Resources:
                 AlarmName="$AlarmNamePrefix-$INST_ID"
 
                 DS_SERVER=ds-$INST_ID
-                DS_HOSTNAME=`curl -s http://169.254.169.254/latest/meta-data/hostname`
-                DS_HOST_PRIVIP=`curl -s http://169.254.169.254/latest/meta-data/local-ipv4`
+                DS_HOSTNAME=`curl -s http://169.254.169.254/latest/meta-data/hostname -H "X-aws-ec2-metadata-token: $TOKEN"`
+                DS_HOST_PRIVIP=`curl -s http://169.254.169.254/latest/meta-data/local-ipv4 -H "X-aws-ec2-metadata-token: $TOKEN"`
                 AF_HOME=$DSROOT
                 AF_CONFIG=$AF_HOME
 
                 TRG_INSTNAME='DBInstance-${DeploymentName}'
-                TRG_DBTYPE=${TDBType}
+                TRG_DBTYPE='${TDBType}'
                 TRG_DBHOST=${TDBHost}
                 TRG_DBPORT=${TDBPort}
                 TRG_DBNAME=${TDBName}
@@ -1392,6 +1385,7 @@ Resources:
                 CWLOGUPLOAD_INTERVAL=${CloudWatchLogSyncInterval}
 
                 INST_CAPT="[DS $INST_ID]"
+                SSHADMINCIDR=${AdminLocationCIDR}
               - {
                   DSCloudRoot: !FindInMap [Consts, V1, DSCloudRoot],
                   DSRoot: !FindInMap [Consts, V1, DSRoot],
@@ -1410,19 +1404,20 @@ Resources:
             /opt/cooked/vm-creds.sh:
               content: !Sub |
                 #!/bin/bash
-                INSTID=`curl -s http://169.254.169.254/latest/meta-data/instance-id`
-                IAM_ROLE=`curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/`
+                TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+                INSTID=`curl -s http://169.254.169.254/latest/meta-data/instance-id -H "X-aws-ec2-metadata-token: $TOKEN"`
+                IAM_ROLE=`curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/ -H "X-aws-ec2-metadata-token: $TOKEN"`
                 if [ -z "$IAM_ROLE" ]; then
                     echo "$INSTID: Security credentials for this instance is not found!"
                 else
                     IAM_NOT_FOUND=`echo "$IAM_ROLE" | grep -i "not found"`
                     if [ -z "$IAM_NOT_FOUND" ]; then
-                        IAM_CREDS=`curl -s "http://169.254.169.254/latest/meta-data/iam/security-credentials/$IAM_ROLE"`
+                        IAM_CREDS=`curl -s "http://169.254.169.254/latest/meta-data/iam/security-credentials/$IAM_ROLE" -H "X-aws-ec2-metadata-token: $TOKEN"`
                         export AWS_ACCESS_KEY_ID=`echo $IAM_CREDS | python -c "import sys, json; print json.load(sys.stdin)['AccessKeyId']"`
                         export AWS_SECRET_ACCESS_KEY=`echo $IAM_CREDS | python -c "import sys, json; print json.load(sys.stdin)['SecretAccessKey']"`
                         export AWS_SESSION_TOKEN=`echo $IAM_CREDS | python -c "import sys, json; print json.load(sys.stdin)['Token']"`
                         export AWS_SECURITY_TOKEN=$AWS_SESSION_TOKEN
-                        EC2_AVAIL_ZONE=`curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone`
+                        EC2_AVAIL_ZONE=`curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone -H "X-aws-ec2-metadata-token: $TOKEN"`
                         EC2_REGION="`echo "$EC2_AVAIL_ZONE" | sed -e 's:\([0-9][0-9]*\)[a-z]*$:\1:'`"
                         aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
                         aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
@@ -1452,11 +1447,11 @@ Resources:
                 setupCWLogUploading() {
                     if [ "$CWLOGUPLOAD_ENABLED" == "ON" ]; then
                         logBeginAct "Setup CloudWatch Logs synchronization..."
-                        echo -ne "*/$CWLOGUPLOAD_INTERVAL * * * * root $DSCLOUDDIR/push-cwlogs-conf.sh\n" | sudo tee --append /etc/crontab
-                        sudo rm -f /etc/awslogs/awslogs.conf
-                        sudo rm -fr /root/.aws
+                        echo -ne "*/$CWLOGUPLOAD_INTERVAL * * * * root $DSCLOUDDIR/push-cwlogs-conf.sh\n" | tee --append /etc/crontab
+                        rm -f /etc/awslogs/awslogs.conf
+                        rm -fr /root/.aws
                         systemctl stop awslogsd.service
-                        sudo sed -i "s/.*region =.*/region = $EC2REGION/" /etc/awslogs/awscli.conf
+                        sed -i "s/.*region =.*/region = $EC2REGION/" /etc/awslogs/awscli.conf
                         logEndAct "Setup CloudWatch Logs synchronization DONE"
                     fi
                 }
@@ -1484,7 +1479,7 @@ Resources:
                             --alarm-actions "$AlarmSNSTopic"
                         RETVAL=$?
                         if [ $RETVAL -eq 0 ]; then
-                            echo -ne "*/1 * * * * root $DSCLOUDDIR/service-mon.sh\n" | sudo tee --append /etc/crontab
+                            echo -ne "*/1 * * * * root $DSCLOUDDIR/service-mon.sh\n" | tee --append /etc/crontab
                         fi
                         logEndAct "Setup service monitoring and alarm result - $RETVAL"
                     fi
@@ -1507,13 +1502,14 @@ Resources:
                     exit 1
                 fi
                 source $DSCLOUDDIR/vm-creds.sh
-                INST_ID=`curl -s http://169.254.169.254/latest/meta-data/instance-id`
+                TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+                INST_ID=`curl -s http://169.254.169.254/latest/meta-data/instance-id -H "X-aws-ec2-metadata-token: $TOKEN"`
                 uploadBackup() {
                     echo -ne "Upload '$1'...\n"
                     aws s3 $S3_CMDARGS cp $1 $BACKUP_BUCKET/Backup/$INST_ID/
                     uplrv=$?
                     if [ $uplrv -eq 0 ]; then
-                        sudo rm -f $1
+                        rm -f $1
                     fi
                 }
                 goThrough() {
@@ -1541,12 +1537,13 @@ Resources:
                     export HTTP_PROXY="$PROXY_CONF"
                     export HTTPS_PROXY="$PROXY_CONF"
                 fi
-                INST_ID=`curl -s http://169.254.169.254/latest/meta-data/instance-id`
+                TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+                INST_ID=`curl -s http://169.254.169.254/latest/meta-data/instance-id -H "X-aws-ec2-metadata-token: $TOKEN"`
                 sendAliveMetric() {
                     aws cloudwatch put-metric-data --metric-name "ServiceAlive" --namespace "DataSunrise" --value $1 --dimensions InstanceId=$INST_ID
                 }
                 source $DSCLOUDDIR/vm-creds.sh
-                STEXT=`sudo service datasunrise status 2> /dev/null`
+                STEXT=`service datasunrise status 2> /dev/null`
                 SSTATUS=$?
                 if [ $SSTATUS -ne 0 ]; then
                     echo $STEXT
@@ -1569,7 +1566,7 @@ Resources:
                     local LOG=$1
                     local LOGNAME=$(basename "${!LOG%.*}")
                     local ENT="{
-                \"file_path\": \"$LOG\", 
+                \"file_path\": \"$LOG\",
                 \"log_stream_name\": \"$LOGNAME\",
                 \"log_group_name\": \"$CFDEPLOYMENTNAME/{instance_id}\"},"
                     echo -ne ">> $LOG\n"
@@ -1582,17 +1579,17 @@ Resources:
                         process_entry $log
                     done
                 }
-                agentconf="\n 
-                { \n 
-                \"agent\": { \n 
-                \"run_as_user\": \"root\" 
-                }, \n 
-                \"logs\": { 
+                agentconf="\n
+                { \n
+                \"agent\": { \n
+                \"run_as_user\": \"root\"
+                }, \n
+                \"logs\": {
                 \"force_flush_interval\": 5,
-                \"logs_collected\": { 
-                \"files\": { 
-                \"collect_list\": [ 
-                " 
+                \"logs_collected\": {
+                \"files\": {
+                \"collect_list\": [
+                "
                 echo -ne "$agentconf" >> $CONF
                 echo -ne >> $CONF
                 echo -ne >> $CONF
@@ -1606,13 +1603,13 @@ Resources:
                 sed -i '$ s/.$//' /tmp/awslogs.conf
                 echo -ne >> $CONF
                 OUTPUT="
-                ] \n } \n } \n } \n } \n 
-                "  
-                echo -ne "$OUTPUT" >> $CONF 
-                sudo mv -f $CONF $MAINCONF
-                sudo chmod 755 $LOGD
-                sudo service awslogsd stop
-                sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent-config.json -s
+                ] \n } \n } \n } \n } \n
+                "
+                echo -ne "$OUTPUT" >> $CONF
+                mv -f $CONF $MAINCONF
+                chmod 755 $LOGD
+                service awslogsd stop
+                /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent-config.json -s
               mode: '000755'
               owner: ec2-user
               group: ec2-user
@@ -1645,22 +1642,22 @@ Resources:
               content: !Sub |
                 #!/bin/bash
                   makeItMineParam() {
-                      sudo chown datasunrise:datasunrise -R "$1"
+                      chown datasunrise:datasunrise -R "$1"
                   }
                   makeItMine() {
-                      sudo chown datasunrise:datasunrise -R *
+                      chown datasunrise:datasunrise -R *
                   }
                   cleanLogs() {
-                      sudo rm -f $DSROOT/logs/Backend*
-                      sudo rm -f $DSROOT/logs/CoreLog*
-                      sudo rm -f $DSROOT/logs/WebLog*
+                      rm -f $DSROOT/logs/Backend*
+                      rm -f $DSROOT/logs/CoreLog*
+                      rm -f $DSROOT/logs/WebLog*
                   }
                   cleanSQLite() {
-                      sudo rm -f $DSROOT/audit.db*
-                      sudo rm -f $DSROOT/event.db*
-                      sudo rm -f $DSROOT/dictionary.db*
-                      sudo rm -f $DSROOT/local_settings.db*
-                      sudo rm -f $DSROOT/lock.db*
+                      rm -f $DSROOT/audit.db*
+                      rm -f $DSROOT/event.db*
+                      rm -f $DSROOT/dictionary.db*
+                      rm -f $DSROOT/local_settings.db*
+                      rm -f $DSROOT/lock.db*
                   }
                   loginToDS() {
                       $DSROOT/cmdline/executecommand.sh connect -host 127.0.0.1 -login "$1" -password "$2"
@@ -1706,7 +1703,7 @@ Resources:
                     RETVAL=$?
                     log "Result of '$DS_INSTALLER_CMD' is $RETVAL"
                     log "Turn on DataSunrise daemon"
-                    sudo chkconfig datasunrise on
+                    chkconfig datasunrise on
                     log "Setup $AF_GCNF..."
                     local AF_GCNF=/etc/datasunrise.conf
                     local ORACLE_HOME=/usr/lib/oracle/19.3/client64/lib
@@ -1720,7 +1717,6 @@ Resources:
                         log "Setup Hourly Billing licensing model..."
                         cp appfirewall-hb.reg /opt/datasunrise/appfirewall.reg
                     fi
-                    
                     cleanLogs
                     cleanSQLite
                     logEndAct "Install DataSunrise result - $RETVAL"
@@ -1739,7 +1735,7 @@ Resources:
                 #!/bin/bash
                 resetAdminPassword() {
                     logBeginAct "Reset Admin Password..."
-                    sudo LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService \
+                    LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService \
                         SET_ADMIN_PASSWORD=$DSAdminPassword
                     RETVAL=$?
                     echo $INST_CAPT: Reset DS Admin Password result - $RETVAL
@@ -1748,7 +1744,7 @@ Resources:
                     local HA_DBTYPE_LWR="`echo "$HA_DBTYPE" | tr '[:upper:]' '[:lower:]'`"
                     local HA_DBPASSWD="`aws --region $EC2REGION secretsmanager get-secret-value --secret-id $CFDEPLOYMENTNAME-secret-config-password --query SecretString --output text`"
                     logBeginAct "Reset Dictionary..."
-                    sudo LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService \
+                    LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService \
                         CLEAN_LOCAL_SETTINGS \
                         DICTIONARY_TYPE="$HA_DBTYPE_LWR" \
                         DICTIONARY_HOST="$HA_DBHOST" \
@@ -1768,7 +1764,7 @@ Resources:
                 resetAudit() {
                     local HA_AUPASSWD="`aws --region $EC2REGION secretsmanager get-secret-value --secret-id $CFDEPLOYMENTNAME-secret-config-password --query SecretString --output text`"
                     logBeginAct "Reset Audit..."
-                    sudo LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService \
+                    LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService \
                         CHANGE_SETTINGS \
                         AuditDatabaseType="$HA_AUTYPE" \
                         AuditDatabaseHost="$HA_AUHOST" \
@@ -1811,25 +1807,71 @@ Resources:
                     RETVAL=$?
                     logEndAct "Setup DS proxy $TRG_INSTNAME for $TDBHost:$TDBPort result - $RETVAL"
                 }
-                copyProxies() {
-                  logBeginAct "Copy proxy..."
+                copyProxy()
+                {
+                  logBeginAct "Starting copying proxies..."
+                  service datasunrise stop
+                  LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService COPY_PROXIES
+                  LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService COPY_TRAILINGS
+                  service datasunrise start
+                  logEndAct "Finished copying proxies"
+                }
+                checkInstanceExists() {
+                  logBeginAct "Checking existing instances..."
                   loginAsAdmin
-                  for attempts in {1..100}
-                        do
-                              instances=`$DSROOT/cmdline/executecommand.sh showInstances`;
-                              if [[ "$instances" == "No Instances" ]]; then
-                                  echo "No Instances, waiting...";
-                                  sleep 5;
-                              else
-                                  service datasunrise stop
-                                  sudo LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService COPY_PROXIES
-                                  sudo LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService COPY_TRAILINGS
-                                  service datasunrise restart
-                                  sleep 10
-                                  break;
-                              fi;
-                        done
-                  logEndAct "Proxies copied."
+                  local instances=`$DSROOT/cmdline/executecommand.sh showInstances`;
+                    if [[ "$instances" == "No Instances" ]]; then
+                      logEndAct "No instances found, returning 0."
+                      return 0
+                    else
+                      logEndAct "Instances found, returning 1."
+                      return 1
+                    fi
+                }
+                checkNeigbrours()
+                {
+                  logBeginAct "Checking neigbour instances from my ASG..."
+                  TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+                  INST_ID=`curl -s http://169.254.169.254/latest/meta-data/instance-id -H "X-aws-ec2-metadata-token: $TOKEN"`
+                  local neigbours=$(aws ec2 describe-instances --filters 'Name=tag:aws:autoscaling:groupName,Values=ribragimov-asg' | python -c "import sys,json; [sys.stdout.write(str(inst)) for instance in json.load(sys.stdin)['Reservations'] for inst in instance['Instances'] if inst['InstanceId'] != '$INST_ID']")
+                  if [[ -z $neigbours ]]; then
+                    logEndAct "No neighbours found, returning 0"
+                    return 0
+                  else
+                    logEndAct "Neigbours found, returning 1"
+                    return 1
+                  fi
+                }
+                waitForRandTime()
+                {
+                  logBeginAct "Waiting for random time..."
+                  sleep $(( RANDOM % 270 + 30 ));
+                  logEndAct "Finished waiting"
+                }
+                processSetupOrCopy()
+                {
+                  logBeginAct "Entered main setupProxy function. Will decide to create or to copy..."
+                  checkInstanceExists
+                  if [ $? == 1 ]; then
+                    copyProxy
+                  else
+                    checkNeigbrours
+                    if [ $? == 0 ]; then
+                      setupProxy
+                    else
+                      waitForRandTime
+                      checkInstanceExists
+                      if [ $? == 1 ]; then
+                        copyProxy
+                      else
+                        setupProxy
+                        if [ $? -ne 0 ]; then
+                          copyProxy
+                        fi
+                      fi
+                    fi
+                  fi
+                  logEndAct "Exited main setupProxy function."
                 }
                 setupBackupParams() {
                     logBeginAct "Setup backups..."
@@ -1844,7 +1886,7 @@ Resources:
                     logEndAct "Setup backups result - $RETVAL"
                 }
                 setupBackupActions() {
-                    echo -ne "*/5 * * * * root $DSCLOUDDIR/backup-upload.sh s3://$BackupS3BucketName\n" | sudo tee --append /etc/crontab
+                    echo -ne "*/5 * * * * root $DSCLOUDDIR/backup-upload.sh s3://$BackupS3BucketName\n" | tee --append /etc/crontab
                 }
                 setupAdditionals() {
                     logBeginAct "Setup additional parameters..."
@@ -1879,7 +1921,7 @@ Resources:
                         return $RETVAL
                     fi
                     echo "$DSLicenseKey" > /tmp/appfirewall.reg
-                    sudo mv /tmp/appfirewall.reg $DSROOT/
+                    mv /tmp/appfirewall.reg $DSROOT/
                     makeItMineParam $DSROOT/
                     logEndAct "Setup license result - $?"
                 }
@@ -1887,7 +1929,7 @@ Resources:
                     uploadAllSetupLogs
                     makeItMine
                     cleanLogs
-                    sudo service datasunrise stop
+                    service datasunrise stop
                 }
                 setupCleaningTask() {
                     logBeginAct "Set node cleaning task..."
@@ -1914,19 +1956,6 @@ Resources:
                     echo "net.ipv4.tcp_keepalive_intvl = 10" >> /etc/sysctl.conf
                     echo "net.ipv4.tcp_keepalive_probes = 6" >> /etc/sysctl.conf
                     sysctl -p
-                }
-                checkInstanceExists() {
-                    logBeginAct "Checking existing instances..."
-                    loginAsAdmin
-                    instanceExists=
-                    instances=`$DSROOT/cmdline/executecommand.sh showInstances`;
-                        if [[ "$instances" == "No Instances" ]]; then
-                            instanceExists=0
-                            logEndAct "No instances found. Will create new."
-                        else
-                            instanceExists=1
-                            logEndAct "Instances found. Will copy."
-                        fi;
                 }
                 createRDSKeyGroup() {
                     logBeginAct "Preparing RDS SSLKeyGroup..."
@@ -1981,9 +2010,9 @@ Resources:
                   }
                   configureJVM() {
                       logBeginAct "Configuring JVM..."
-                      sudo echo "/usr/lib/jvm/java-11-amazon-corretto.x86_64/lib/server/" >> /etc/ld.so.conf.d/datasunrise.conf
-                      sudo echo "/usr/lib/jvm/java-11-amazon-corretto.x86_64/lib/" >> /etc/ld.so.conf.d/datasunrise.conf
-                      sudo ldconfig
+                      echo "/usr/lib/jvm/java-11-amazon-corretto.x86_64/lib/server/" >> /etc/ld.so.conf.d/datasunrise.conf
+                      echo "/usr/lib/jvm/java-11-amazon-corretto.x86_64/lib/" >> /etc/ld.so.conf.d/datasunrise.conf
+                      ldconfig
                       logEndAct "Configuring JVM result - $RETVAL"
                   }
                   prepareMsAudit() {
@@ -1995,8 +2024,8 @@ Resources:
                       echo "GO" >> createdatabaseaudit.sql
                       ./sqlcmd* -S $HA_AUHOST,$HA_AUPORT -U $HA_AUUSER -P $HA_AUPASSWD -i createdatabaseaudit.sql
                       rm createdatabaseaudit.sql
-                      cd /opt/datasunrise 
-                      logEndAct "Preparing audit database for MSSQL result - $RETVAL" 
+                      cd /opt/datasunrise
+                      logEndAct "Preparing audit database for MSSQL result - $RETVAL"
                   }
                   prepareMsDictionary() {
                       logBeginAct "Dictionary is MSSQL, preparing dictionary database..."
@@ -2023,8 +2052,8 @@ Resources:
                       dsversion=`$DSROOT/AppBackendService VERSION`
                       if [ '6.3.1.99999' = "`echo -e "6.3.1.99999\n$dsversion" | sort -V | head -n1`" ] ; then
                         logBeginAct "DS Version is higher than 6.3.1.99999: $dsversion, setting license to dictionary..."
-                        sudo LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService IMPORT_LICENSE_FROM_FILE=$DSROOT/appfirewall.reg
-                        logEndAct "License has been set with exit code $?" 
+                        LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService IMPORT_LICENSE_FROM_FILE=$DSROOT/appfirewall.reg
+                        logEndAct "License has been set with exit code $?"
                       fi
                   }
               mode: '000755'
@@ -2032,7 +2061,7 @@ Resources:
               group: ec2-user
     Properties:
       KeyName: !Ref VMKeyPair
-      ImageId: !FindInMap 
+      ImageId: !FindInMap
         - RegionMap
         - !Ref 'AWS::Region'
         - AMI
@@ -2040,7 +2069,7 @@ Resources:
       SecurityGroups:
         - !Ref EC2SG
       IamInstanceProfile: !Ref DSNodeProfile
-      InstanceMonitoring: !If 
+      InstanceMonitoring: !If
         - HasAlarm
         - 'true'
         - 'false'
@@ -2050,133 +2079,132 @@ Resources:
             VolumeType: gp2
             DeleteOnTermination: 'true'
             VolumeSize: '20'
-      UserData: 
-        Fn::Base64: 
-            !Sub 
-            - |
-              #!/bin/bash
-              echo "CloudFormation script has been started"
-              timedatectl set-timezone ${timeZone}
-              CFS_BGN_TS=$(date +%s.%N)
-              CFSTACKNAME=${AWS::StackName}
-              CFDEPLOYMENTNAME=${DeploymentName}
-              EC2REGION=${AWS::Region}
-              DSROOT=${DSRoot}
-              DSCLOUDDIR=${DSCloudRoot}
-              mkdir -p $DSCLOUDDIR
-              /opt/aws/bin/cfn-init -v --stack $CFSTACKNAME --resource DSLaunchConf --configsets AWSLinux1 --region $EC2REGION
-              mv /opt/cooked/* $DSCLOUDDIR/
-              rm -fR /opt/cooked
-              AWS_STACK_ID_ARN=${AWS::StackId}
-              AWS_STACK_ID="${!AWS_STACK_ID_ARN##*/}"
-              echo "DSAdminPassword exporting has been started" 
-              export DSAdminPassword=`aws --region $EC2REGION secretsmanager get-secret-value --secret-id $CFDEPLOYMENTNAME-secret-admin-password --query SecretString --output text`
-              cd $DSCLOUDDIR
-              # DO NOT change order!
-              echo "vm-creds execution" 
-              source vm-creds.sh
-              echo "cf-params execution" 
-              source cf-params.sh
-              echo "ds-manip execution" 
-              source ds-manip.sh
-              echo "ds-setup execution" 
-              source ds-setup.sh
-              echo "aws-ds-setup execution" 
-              source aws-ds-setup.sh
-              echo "pre-setup execution" 
-              source pre-setup.sh
-              echo "Setting up Cloud Watch Alarm" 
-              setupCloudWatch
-              if [ -z "$HA_DBHOST" ] || [ -z "$HA_DBPORT" ]; then
-                  logEndAct "Dictionary RDS not found! Goodbye..."
-                  onAbortSetup
-                  exit $RETVAL
-              fi
-              if [ -z "$HA_AUHOST" ] || [ -z "$HA_AUPORT" ]; then
-                  logEndAct "Audit RDS not found! Goodbye..."
-                  onAbortSetup
-                  exit $RETVAL
-              fi
-              installProduct
-              if [ "$RETVAL" != "0" ]; then
-                  logEndAct "Installation Error! Goodbye..."
-                  onAbortSetup
-                  exit $RETVAL
-              fi
-              # Installation OK, continue
-              makeItMine
-              logBeginAct "Setup DataSunrise..."
-              cd $DSROOT
-              FIRST_NODE=0
-              if [ ${currentDictionaryType} == "MSSQL" ]; then
-                  prepareMsDictionary
-              fi
-              resetDict
-              setDictionaryLicense
-              if [ "$RETVAL" == "93" ]; then
-                  FIRST_NODE=1
-                  logBeginAct "Setup First Node of DataSunrise..."
-                  resetAdminPassword
-              elif [ "$RETVAL" == "94" ]; then
-                  FIRST_NODE=0
-                  logBeginAct "Setup Next Node of DataSunrise..."
-              else
-                  logEndAct "Setup Dictionary Error! Goodbye..."
-                  onAbortSetup
-                  exit $RETVAL
-              fi
-              if [ ${currentAuditType} == "MSSQL" ]; then
-                  prepareMsAudit
-              fi
-              resetAudit
-              if [ "$RETVAL" != "96" ]; then
-                  logEndAct "Setup Audit Error! Goodbye..."
-                  onAbortSetup
-                  exit $RETVAL
-              fi
-              makeItMine
-              cleanLogs
-              sudo service datasunrise start
-              sleep 20
-              checkInstanceExists
-              if [ "$instanceExists" == "0" ]; then
-                  logBeginAct "Create proxy..."
-                  setupProxy
-                  setupCleaningTask
-              else
-                  logBeginAct "Copy proxy..."
-                  copyProxies
-                  runCleaningTask
-              fi
-              if [ "$FIRST_NODE" == "1" ]; then
-                  if [ ! -z "$BackupS3BucketName" ]; then
-                    setupBackupParams
-                  fi
-                  if [ ! -z "$AWSCLIProxy"]; then
-                    setupHttpProxy
-                  fi
-                  setupAdditionals
-              fi
-              setupBackupActions
-              sudo service datasunrise stop
-              cleanLogs
-              makeItMine
-              configureKeepAlive
-              configureJVM
-              setcapAppFirewallCore
-              sudo service datasunrise start
-              CFS_END_TS=$(date +%s.%N)
-              CFS_ELLAPSED=$(echo "$CFS_END_TS - $CFS_BGN_TS" | bc)
-              logEndAct "Setup DataSunrise finished in $CFS_ELLAPSED sec."
-              uploadSetupLogs
-              setupCWLogUploading
-            - {
-                  DSCloudRoot: !FindInMap [Consts, V1, DSCloudRoot],
-                  DSRoot: !FindInMap [Consts, V1, DSRoot],
-                  currentAuditType: !Ref AuditType,
-                  currentDictionaryType: !Ref DictionaryType,
-                  timeZone: !Ref TimeZone
-              }
+      MetadataOptions:
+        HttpEndpoint: enabled
+        HttpTokens: required
+      UserData:
+        Fn::Base64:
+          !Sub
+          - |
+            #!/bin/bash
+            echo "CloudFormation script has been started"
+            timedatectl set-timezone ${timeZone}
+            yum update
+            CFS_BGN_TS=$(date +%s.%N)
+            CFSTACKNAME=${AWS::StackName}
+            CFDEPLOYMENTNAME=${DeploymentName}
+            EC2REGION=${AWS::Region}
+            DSROOT=${DSRoot}
+            DSCLOUDDIR=${DSCloudRoot}
+            mkdir -p $DSCLOUDDIR
+            /opt/aws/bin/cfn-init -v --stack $CFSTACKNAME --resource DSLaunchConf --configsets AWSLinux1 --region $EC2REGION
+            mv /opt/cooked/* $DSCLOUDDIR/
+            rm -fR /opt/cooked
+            AWS_STACK_ID_ARN=${AWS::StackId}
+            AWS_STACK_ID="${!AWS_STACK_ID_ARN##*/}"
+            echo "DSAdminPassword exporting has been started"
+            export DSAdminPassword=`aws --region $EC2REGION secretsmanager get-secret-value --secret-id $CFDEPLOYMENTNAME-secret-admin-password --query SecretString --output text`
+            cd $DSCLOUDDIR
+            # DO NOT change order!
+            echo "vm-creds execution"
+            source vm-creds.sh
+            echo "cf-params execution"
+            source cf-params.sh
+            echo "ds-manip execution"
+            source ds-manip.sh
+            echo "ds-setup execution"
+            source ds-setup.sh
+            echo "aws-ds-setup execution"
+            source aws-ds-setup.sh
+            echo "pre-setup execution"
+            source pre-setup.sh
+            echo "Setting up Cloud Watch Alarm"
+            setupCloudWatch
+            if [ -z "$HA_DBHOST" ] || [ -z "$HA_DBPORT" ]; then
+                logEndAct "Dictionary RDS not found! Goodbye..."
+                onAbortSetup
+                exit $RETVAL
+            fi
+            if [ -z "$HA_AUHOST" ] || [ -z "$HA_AUPORT" ]; then
+                logEndAct "Audit RDS not found! Goodbye..."
+                onAbortSetup
+                exit $RETVAL
+            fi
+            installProduct
+            if [ "$RETVAL" != "0" ]; then
+                logEndAct "Installation Error! Goodbye..."
+                onAbortSetup
+                exit $RETVAL
+            fi
+            # Installation OK, continue
+            makeItMine
+            logBeginAct "Setup DataSunrise..."
+            cd $DSROOT
+            FIRST_NODE=0
+            if [ ${currentDictionaryType} == "MSSQL" ]; then
+                prepareMsDictionary
+            fi
+            resetDict
+            setDictionaryLicense
+            if [ "$RETVAL" == "93" ]; then
+                FIRST_NODE=1
+                logBeginAct "Setup First Node of DataSunrise..."
+                resetAdminPassword
+            elif [ "$RETVAL" == "94" ]; then
+                FIRST_NODE=0
+                logBeginAct "Setup Next Node of DataSunrise..."
+            else
+                logEndAct "Setup Dictionary Error! Goodbye..."
+                onAbortSetup
+                exit $RETVAL
+            fi
+            if [ ${currentAuditType} == "MSSQL" ]; then
+                prepareMsAudit
+            fi
+            resetAudit
+            if [ "$RETVAL" != "96" ]; then
+                logEndAct "Setup Audit Error! Goodbye..."
+                onAbortSetup
+                exit $RETVAL
+            fi
+            makeItMine
+            cleanLogs
+            service datasunrise start
+            sleep 20
+            if [ "$FIRST_NODE" == "1" ]; then
+              setupProxy
+            else
+              processSetupOrCopy
+            fi
+            if [ "$FIRST_NODE" == "1" ]; then
+                if [ ! -z "$BackupS3BucketName" ]; then
+                  setupBackupParams
+                fi
+                if [ ! -z "$AWSCLIProxy"]; then
+                  setupHttpProxy
+                fi
+                setupAdditionals
+            fi
+            setupBackupActions
+            service datasunrise stop
+            cleanLogs
+            makeItMine
+            configureKeepAlive
+            configureJVM
+            setcapAppFirewallCore
+            service datasunrise start
+            CFS_END_TS=$(date +%s.%N)
+            CFS_ELLAPSED=$(echo "$CFS_END_TS - $CFS_BGN_TS" | bc)
+            logEndAct "Setup DataSunrise finished in $CFS_ELLAPSED sec."
+            uploadSetupLogs
+            setupCWLogUploading
+          - {
+              DSCloudRoot: !FindInMap [Consts, V1, DSCloudRoot],
+              DSRoot: !FindInMap [Consts, V1, DSRoot],
+              currentAuditType: !Ref AuditType,
+              currentDictionaryType: !Ref DictionaryType,
+              timeZone: !Ref TimeZone
+          }
   DSAutoScalingGroup:
     Type: 'AWS::AutoScaling::AutoScalingGroup'
     DependsOn:
