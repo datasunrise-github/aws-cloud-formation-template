@@ -410,7 +410,7 @@ Parameters:
     AllowedPattern: .+
   DSLicenseType:
     Type: String
-    Default: HourlyBilling
+    Default: BYOL
     AllowedValues:
       - HourlyBilling
       - BYOL
@@ -423,6 +423,7 @@ Parameters:
     Description: The DataSunrise license key.
   DBUser:
     Type: String
+    NoEcho: 'true'
     Description: >-
       The database administrator account username. Must begin with a letter and
       contain only alphanumeric characters.
@@ -432,8 +433,8 @@ Parameters:
     AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
     ConstraintDescription: must begin with a letter and contain only alphanumeric characters
   DBPassword:
-    NoEcho: 'true'
     Type: String
+    NoEcho: 'true'
     Description: The database administrator account password.
     MinLength: '8'
     MaxLength: '41'
@@ -932,12 +933,12 @@ Resources:
       GroupDescription: Enables SSH and access to DataSunrise console (port 11000)
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
+          FromPort: '22'
+          ToPort: '22'
           CidrIp: !Ref AdminLocationCIDR
         - IpProtocol: tcp
-          FromPort: 11000
-          ToPort: 11000
+          FromPort: '11000'
+          ToPort: '11000'
           CidrIp: !Ref UserLocationCIDR
         - IpProtocol: tcp
           FromPort: !Ref TDBPort
@@ -953,8 +954,8 @@ Resources:
     Properties:
       GroupId: !GetAtt EC2SG.GroupId
       IpProtocol: tcp
-      FromPort: 11000
-      ToPort: 11010
+      FromPort: '11000'
+      ToPort: '11010'
       SourceSecurityGroupId: !GetAtt EC2SG.GroupId
   TDBSGIngressRule:
     Type: AWS::EC2::SecurityGroupIngress
@@ -1461,10 +1462,13 @@ Resources:
         - !Ref DSConfigSG
       DBSubnetGroupName: !Ref DSDBSubnetGrp
       DBParameterGroupName: !If [DictionaryPostgres, !Ref DSParameterGroupPostgres, !If [DictionaryMysql, !Ref DSParameterGroupMysql, !Ref DSParameterGroupMssqlDictionary]]
-      StorageEncrypted: !If [DictionaryMssql, !Ref 'AWS::NoValue', true]
+      StorageEncrypted: !If [DictionaryMssql, !Ref 'AWS::NoValue', 'True']
       StorageType: gp2
       LicenseModel: !If [DictionaryPostgres, !FindInMap [Consts, V1, PostgresLicenseModel], !If [DictionaryMysql, !FindInMap [Consts, V1, MysqlLicenseModel], !FindInMap [Consts, V1, MssqlLicenseModel]]]
+      DeletionProtection: true
+      PubliclyAccessible: false
     DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
   DSAuditDB:
     Condition: isNotAuroraCluster
     Type: 'AWS::RDS::DBInstance'
@@ -1487,11 +1491,14 @@ Resources:
         - !Ref DSConfigSG
       DBSubnetGroupName: !Ref DSDBSubnetGrp
       DBParameterGroupName: !If [AuditPostgres, !Ref DSParameterGroupPostgres, !If [AuditMysql, !Ref DSParameterGroupMysql, !Ref DSParameterGroupMssqlAudit]]
-      StorageEncrypted: true
+      StorageEncrypted: 'True'
       StorageType: gp2
       MaxAllocatedStorage: !If [AuditMssql, 16384, 65536]
       LicenseModel: !If [AuditPostgres, !FindInMap [Consts, V1, PostgresLicenseModel], !If [AuditMysql, !FindInMap [Consts, V1, MysqlLicenseModel], !FindInMap [Consts, V1, MssqlLicenseModel]]]
+      DeletionProtection: true
+      PubliclyAccessible: false
     DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
   DSAuditDBCluster:
     Condition: isAuroraCluster
     Type: AWS::RDS::DBCluster
@@ -1507,7 +1514,7 @@ Resources:
       DBClusterParameterGroupName: !If [AuditAuroraPostgres, !Ref DSParameterGroupPostgresCluster, !Ref DSParameterGroupMysqlCluster]
       DBClusterIdentifier: !Join ['', [!Ref DeploymentName, '-dsauditCluster']]
       Port: !If [AuditAuroraPostgres, !FindInMap [Consts, V1, pgPort], !FindInMap [Consts, V1, myPort]]
-      StorageEncrypted: true
+      StorageEncrypted: 'True'
   DSAuditDBClusterNode:
     Condition: isAuroraCluster
     Type: 'AWS::RDS::DBInstance'
@@ -1520,6 +1527,7 @@ Resources:
       DBInstanceClass: !Join ['', ['db.r5.', !Ref AuditDBClass]]
       DBSubnetGroupName: !Ref DSDBSubnetGrp
       DBInstanceIdentifier: !Join ['', [!Ref DeploymentName, '-dsauditnode']]
+      PubliclyAccessible: false
   DSParameterGroupPostgres:
     Condition: ParameterGroupPg
     Type: AWS::RDS::DBParameterGroup
@@ -1590,7 +1598,7 @@ Resources:
     Properties:
       Name: !Join ['', [!Ref DeploymentName, '-dswebuitg']]
       Protocol: TCP
-      Port: 11000
+      Port: '11000'
       VpcId: !Ref VPC
   DSTDBTargetGroup:
     Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
@@ -1611,7 +1619,7 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref DSWebUITargetGroup
       LoadBalancerArn: !Ref DSLoadBalancer
-      Port: 11000
+      Port: '11000'
       Protocol: TCP
   DSTDBListener:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
@@ -1743,7 +1751,7 @@ Resources:
               owner: ec2-user
               group: ec2-user
             /opt/cooked/ad-setup.sh:
-                content:
+                content: !Sub |
                     #!/bin/bash
                     adGetInfo() {
                         logBeginAct "Getting AD info for $AWS_DS_ID..."
@@ -2133,7 +2141,12 @@ Resources:
                     log "Configuring SELinux support"
                     make -f /usr/share/selinux/devel/Makefile
                     semodule -i $DSCLOUDDIR/datasunrise.pp
-                    sed -i 's/SELINUX=permissive/SELINUX=enforcing/g' /etc/selinux/config
+                    #sed -i 's/SELINUX=permissive/SELINUX=enforcing/g' /etc/selinux/config
+                    ######################################################
+                    sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
+                    setenforce 0
+                    #setting selinux Current mode: permissive
+                    ######################################################
                     restorecon -vRF /opt/datasunrise/
                     semanage port -a -t datasunrise_port_t -p tcp 11000-11010
                     semanage port -a -t datasunrise_port_t -p tcp $TRG_DBPORT
@@ -2144,11 +2157,11 @@ Resources:
                     #iptables -A INPUT -p tcp --dport $TRG_ADDITIONAL_INTERFACE_PORT -j ACCEPT
                     service iptables save
                     # RHEL only ?
-                    log "Adding ports to firewalld"
-                    firewall-cmd --zone=drop --permanent --add-port=11000-11010/tcp
-                    firewall-cmd --zone=drop --permanent --add-port=$TRG_DBPORT/tcp
+                    #log "Adding ports to firewalld"
+                    #firewall-cmd --zone=drop --permanent --add-port=11000-11010/tcp
+                    #firewall-cmd --zone=drop --permanent --add-port=$TRG_DBPORT/tcp
                     #firewall-cmd --zone=drop --permanent --add-port=$TRG_ADDITIONAL_INTERFACE_PORT/tcp
-                    systemctl restart firewalld
+                    #systemctl restart firewalld
                     log "Setting sshd whitelist and blacklist"
                     echo 'ALL: '`echo $SSHADMINCIDR | cut -d"/" -f1`'/'`ipcalc $SSHADMINCIDR -m | cut -d"=" -f2` >> /etc/hosts.allow
                     sed -i 's/#ALL: ALL/ALL: ALL/g' /etc/hosts.deny
@@ -2409,23 +2422,11 @@ Resources:
                     logEndAct "Run node cleaning task - $RETVAL"
                 }
                 configureKeepAlive() {
+                    echo "" >> /etc/sysctl.conf
                     echo "net.ipv4.tcp_keepalive_time = 60" >> /etc/sysctl.conf
                     echo "net.ipv4.tcp_keepalive_intvl = 10" >> /etc/sysctl.conf
                     echo "net.ipv4.tcp_keepalive_probes = 6" >> /etc/sysctl.conf
                     sysctl -p
-                }
-                checkInstanceExists() {
-                    logBeginAct "Checking existing instances..."
-                    loginAsAdmin
-                    instanceExists=
-                    instances=`$DSROOT/cmdline/executecommand.sh showInstances`
-                    if [[ "$instances" == "No Instances" ]]; then
-                        instanceExists=0
-                        logEndAct "No instances found. Will create new."
-                    else
-                        instanceExists=1
-                        logEndAct "Instances found. Will copy."
-                    fi
                 }
                 createRDSKeyGroup() {
                     logBeginAct "Preparing RDS SSLKeyGroup..."
@@ -2696,6 +2697,9 @@ Resources:
                 allow systemd_logind_t cloud_init_t:dbus send_msg;
                 #============= useradd_t ==============
                 allow useradd_t usr_t:fifo_file write;
+                allow datasunrise_t self:process execmem;
+                allow datasunrise_t user_home_dir_t:dir remove_name;
+                allow datasunrise_t user_home_dir_t:file rename;
                 ####################
                 domain_use_interactive_fds(datasunrise_t)
                 files_read_etc_files(datasunrise_t)
@@ -2880,9 +2884,6 @@ Resources:
               logBeginAct "SElinux summary:"
               ausearch -m AVC -ts recent
               logEndAct "SElinux summary done - $?"
-
-              #sed -i 's/tmpfs \/dev\/shm tmpfs defaults,nodev,nosuid 0/tmpfs \/dev\/shm tmpfs defaults,nodev,nosuid,noexec 0/g' /etc/fstab
-              #reboot
             - {
                   DSCloudRoot: !FindInMap [Consts, V1, DSCloudRoot],
                   DSRoot: !FindInMap [Consts, V1, DSRoot],
@@ -2906,21 +2907,21 @@ Resources:
       VPCZoneIdentifier: !Ref SubnetsASGLB
       Cooldown: '120'
       HealthCheckType: !Ref AHealthCheckType
-      HealthCheckGracePeriod: 600
+      HealthCheckGracePeriod: '600'
       Tags:
         - Key: Name
           Value: !Join ['', [!Ref DeploymentName, '-vm']]
-          PropagateAtLaunch: true
+          PropagateAtLaunch: 'True'
   DSAutoScalingPolicy:
     Type: 'AWS::AutoScaling::ScalingPolicy'
     Properties:
       AutoScalingGroupName: !Ref DSAutoScalingGroup
-      EstimatedInstanceWarmup: 90
+      EstimatedInstanceWarmup: '90'
       PolicyType: TargetTrackingScaling
       TargetTrackingConfiguration:
         PredefinedMetricSpecification:
           PredefinedMetricType: ASGAverageCPUUtilization
-        TargetValue: 80
+        TargetValue: '80'
 Outputs:
   DatasunriseConsoleURL:
     Description: Click to proceed to the DataSunrise Console
