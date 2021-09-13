@@ -2125,6 +2125,7 @@ Resources:
                     log "Setup $AF_GCNF..."
                     local AF_GCNF=/etc/datasunrise.conf
                     local ORACLE_HOME=/usr/lib/oracle/19.10/client64/lib
+                    echo "DS_SERVER_NAME_PREFIX=ds" | tee -a $AF_GCNF
                     echo "AWS_PCODE=\"$AWS_AMI_PCODE\"" | tee -a $AF_GCNF
                     echo "ORACLE_HOME=$ORACLE_HOME" | tee -a $AF_GCNF
                     log "DS configuration file $AF_GCNF"
