@@ -2677,15 +2677,14 @@ Resources:
                 INST_IP=`curl -s http://169.254.169.254/latest/meta-data/public-ipv4 -H "X-aws-ec2-metadata-token: $TOKEN"`
                 chmod +x $DSCLOUDDIR/lifecyclehook.py
                 source $DSCLOUDDIR/vm-creds.sh
-                python3 -m pip install requests
-                python3 -m pip install boto3
-                $PYTHONDIR/python3.7 $DSCLOUDDIR/lifecyclehook.py $LFNAME $ASGNAME $INST_ID https://$INST_IP:11000 admin $SECRETID
+                python3 -m pip install requests boto3
+                $PYTHONDIR/python3 $DSCLOUDDIR/lifecyclehook.py $LFNAME $ASGNAME $INST_ID https://$INST_IP:11000 admin $SECRETID
               mode: '000755'
               owner: ec2-user
               group: ec2-user
             /opt/cooked/lifecyclehook.py:
               content: !Sub |
-                #!/usr/bin/python3.7
+                #!/usr/bin/python3
 
                 import itertools
                 import random
@@ -2971,7 +2970,7 @@ Resources:
               
               echo "CloudFormation script has been started"
               
-              yum update
+              yum update -y
               
               CFS_BGN_TS=$(date +%s.%N)
               CFSTACKNAME=${AWS::StackName}
