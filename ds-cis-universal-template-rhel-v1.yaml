@@ -62,22 +62,22 @@ Mappings:
       DictionaryInternalParameterMs: mssql
       DictionaryEnginePg: postgres
       DictionaryEngineMy: mysql
-      DictionaryEngineMs: sqlserver-ex
+      DictionaryEngineMs: sqlserver-se
       AuditEnginePg: postgres
       AuditEngineMy: mysql
       AuditEngineMs: sqlserver-se
-      EngineVersionPg: '11.6'
-      EngineVersionMy: '5.7.22'
-      EngineVersionMs: '14.00.3281.6.v1'
+      EngineVersionPg: '14.2'
+      EngineVersionMy: '5.7.37'
+      EngineVersionMs: '14.00.3401.7.v1'
       AuditAuroraEnginePg: aurora-postgresql
       AuditAuroraEngineMy: aurora-mysql
-      AuditAuroraEngineVersionPg: '11.6'
-      AuditAuroraEngineVersionMy: '5.7.12'
-      ParameterGroupFamilyPg: 'postgres11'
+      AuditAuroraEngineVersionPg: '13.6'
+      AuditAuroraEngineVersionMy: '5.7.37'
+      ParameterGroupFamilyPg: 'postgres14'
       ParameterGroupFamilyMy: 'MySQL5.7'
-      DictionaryParameterGroupFamilyMs: 'sqlserver-ex-14.0'
+      DictionaryParameterGroupFamilyMs: 'sqlserver-se-14.0'
       AuditParameterGroupFamilyMs: 'sqlserver-se-14.0'
-      ParameterGroupFamilyPgCluster: aurora-postgresql11
+      ParameterGroupFamilyPgCluster: aurora-postgresql13
       ParameterGroupFamilyMyCluster: aurora-mysql5.7
       PostgresLicenseModel: 'postgresql-license'
       MysqlLicenseModel: 'general-public-license'
@@ -454,7 +454,7 @@ Parameters:
     AllowedValues:
       - db.t3.small
       - db.t3.medium
-      - dt.t3.large
+      - db.t3.large
       - db.t3.xlarge
       - db.t3.2xlarge
       - db.m5.large
