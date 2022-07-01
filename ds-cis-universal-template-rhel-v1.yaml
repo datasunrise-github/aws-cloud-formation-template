@@ -3,7 +3,7 @@ Description: DataSunrise Database and Data Security - Network Load Balancer univ
 Mappings:
   RegionMap:
     eu-central-1:
-      AMI: ami-0f880c50594f47781
+      AMI: ami-07c7440cf1d796f0f
     eu-north-1:
       AMI: ami-0e8ac95ecad8c2fec
     ap-south-1:
