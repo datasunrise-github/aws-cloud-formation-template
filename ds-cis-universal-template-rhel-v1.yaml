@@ -2158,6 +2158,13 @@ Resources:
               content: !Sub
               - |
                 #!/bin/bash
+                setInstallationType() {
+                    logBeginAct "Setting up Installation Type for AWS..."
+                    LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService \
+                        CHANGE_SETTINGS=1 InstallationType=1
+                    RETVAL=$?
+                    logEndAct "Setting up Installation Type for AWS result - $RETVAL"
+                }
                 resetAdminPassword() {
                     logBeginAct "Reset Admin Password..."
                     LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService \
@@ -3073,6 +3080,7 @@ Resources:
                   onAbortSetup
                   exit $RETVAL
               fi
+              setInstallationType
               makeItMine
               cleanLogs
               service datasunrise start
