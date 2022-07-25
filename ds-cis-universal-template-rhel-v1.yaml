@@ -583,9 +583,7 @@ Parameters:
     Description: >-
       (Optional) In some cases of using private networks it is necessary to set
       up proxy for AWS CLI (PutMetrics/S3). For example
-      http://[username[:password]@]<proxy_host>:<proxy_port>
-    AllowedPattern: '(https?:\/\/((\S*@)?([a-zA-Z1-9.-]+(:\d{1,5}){1})))?'
-    ConstraintDescription: 'You need specify the connection in a similar format "http://[username[:password]@]<proxy_host>:<proxy_port>"'
+      http://[username[:password]@]<proxy host>:<proxy port>
   AlarmEmail:
     Type: String
     Description: >-
@@ -2399,22 +2397,25 @@ Resources:
                 }
                 setupHttpProxy() {
                     local INP_STR=$AWSCLIProxy
-                    PROXY_PROTO=${INP_STR%://*}
-                    PROXY_PROTO=${PROXY_PROTO^^}
-                    PROXY_URL=${INP_STR#*://}
-                    PROXY_USERPASS=${PROXY_URL%@*}
-                    if [ "$PROXY_USERPASS" == "$PROXY_URL" ]; then unset PROXY_USERPASS; fi
-                    PROXY_PASSWD=${PROXY_USERPASS#*:}
-                    PROXY_HOSTPORT=${PROXY_URL/"$PROXY_USERPASS"@/}
-                    PROXY_PORT=${PROXY_HOSTPORT#*:}
-                    PROXY_HOST=${PROXY_HOSTPORT/:"$PROXY_PORT"/}
-                    if [ "$PROXY_PASSWD" == "$PROXY_USERPASS" ]; then
-                        PROXY_USER=$PROXY_PASSWD
-                        unset PROXY_PASSWD
+                    PROXY_PROTO=`echo $INP_STR | grep '://' | sed -e's,^\(.*://\).*,\1,g'`
+                    PROXY_URL=`echo $INP_STR | sed -e s,$PROXY_PROTO,,g`
+                    PROXY_USERPASS=`echo $PROXY_URL | grep @ | cut -d@ -f1`
+                    PROXY_PASSWD=`echo $PROXY_USERPASS | grep : | cut -d: -f2`
+                    if [ -n "$PROXY_PASSWD" ]; then
+                        PROXY_USER=`echo $PROXY_USERPASS | grep : | cut -d: -f1`
                     else
-                        PROXY_USER=${PROXY_USERPASS/:"$PROXY_PASSWD"/}
+                        PROXY_USER=$PROXY_USERPASS
                     fi
-                    if [ "$PROXY_PROTO" == "HTTPS" ]; then
+                    PROXY_HOSTPORT=`echo $PROXY_URL | sed -e s,$PROXY_USERPASS@,,g | cut -d/ -f1`
+                    PROXY_PORT=`echo $PROXY_HOSTPORT | grep : | cut -d: -f2`
+                    if [ -n "$PROXY_PORT" ]; then
+                        PROXY_HOST=`echo $PROXY_HOSTPORT | grep : | cut -d: -f1`
+                    else
+                        PROXY_HOST=$PROXY_HOSTPORT
+                    fi
+                    PROXY_PROTO=${!PROXY_PROTO:0:${!#PROXY_PROTO}-3}
+                    PROXY_PROTO=${!PROXY_PROTO^^}
+                    if [ $PROXY_PROTO == "HTTPS" ]; then
                         PROXY_PROTO_NUM=1
                     else
                         PROXY_PROTO_NUM=0
@@ -2428,11 +2429,13 @@ Resources:
                     log "PROXY_PASSWD : $PROXY_PASSWD"
                     $DSROOT/cmdline/executecommand.sh changeParameter -name HttpProxyType -value "$PROXY_PROTO_NUM"
                     $DSROOT/cmdline/executecommand.sh changeParameter -name HttpProxyHost -value "$PROXY_HOST"
-                    $DSROOT/cmdline/executecommand.sh changeParameter -name HttpProxyPort -value "$PROXY_PORT"
-                    if [ -n "$PROXY_USER" ]; then
+                    if [ ! -z "$PROXY_PORT" ]; then
+                        $DSROOT/cmdline/executecommand.sh changeParameter -name HttpProxyPort -value "$PROXY_PORT"
+                    fi
+                    if [ ! -z "$PROXY_USER" ]; then
                         $DSROOT/cmdline/executecommand.sh changeParameter -name HttpProxyUser -value "$PROXY_USER"
                     fi
-                    if [ -n "$PROXY_PASSWD" ]; then
+                    if [ ! -z "$PROXY_PASSWD" ]; then
                         $DSROOT/cmdline/executecommand.sh changeParameter -name HttpProxyPassword -value "$PROXY_PASSWD"
                     fi
                     logEndAct "Setup HTTP proxy parameters result - $RETVAL"
