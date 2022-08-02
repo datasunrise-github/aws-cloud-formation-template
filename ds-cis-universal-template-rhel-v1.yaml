@@ -3,7 +3,7 @@ Description: DataSunrise Database and Data Security - Network Load Balancer univ
 Mappings:
   RegionMap:
     eu-central-1:
-      AMI: ami-04cfae88930d0e44a
+      AMI: ami-076dfdb6e88a61d1f
     eu-north-1:
       AMI: ami-0f4584b6bb0112cf0
     ap-south-1:
@@ -2020,10 +2020,10 @@ Resources:
               content: !Sub |
                 #!/bin/bash
                   makeItMineParam() {
-                      chown datasunrise:datasunrise -R "$1"
+                      chown -R datasunrise:datasunrise "$1"
                   }
                   makeItMine() {
-                      chown datasunrise:datasunrise -R *
+                      chown -R datasunrise:datasunrise !(PortBinder|AppFirewallCore_Sniffer)
                   }
                   cleanLogs() {
                       logBeginAct "Clean DS logs..."
@@ -2064,7 +2064,7 @@ Resources:
                     logBeginAct "Install DataSunrise..."
                         DS_INSTALLER=DSCustomBuild.run
                           if [[ "${!DSDISTURL:0:2}" == "S3" || "${!DSDISTURL:0:2}" == "s3" ]]; then
-                              aws s3 cp "$DSDISTURL" $DS_INSTALLER
+                              aws s3 cp "$DSDISTURL" $DS_INSTALLER --only-show-errors
                           else
                               wget "$DSDISTURL" -O $DS_INSTALLER -q
                           fi
@@ -2100,7 +2100,7 @@ Resources:
                     setenforce 0
                     #setting selinux Current mode: permissive
                     ######################################################
-                    restorecon -vRF /opt/datasunrise/
+                    restorecon -vRF /opt/datasunrise/ > /dev/null
                     semanage port -a -t datasunrise_port_t -p tcp 11000-11010
                     semanage port -a -t datasunrise_port_t -p tcp $TRG_DBPORT
                     #semanage port -a -t datasunrise_port_t -p tcp $TRG_ADDITIONAL_INTERFACE_PORT
@@ -2354,7 +2354,7 @@ Resources:
                     fi
                     echo "$DSLicenseKey" > /tmp/appfirewall.reg
                     mv /tmp/appfirewall.reg $DSROOT/
-                    makeItMineParam $DSROOT/
+                    makeItMineParam $DSROOT/appfirewall.pem
                     logEndAct "Setup license result - $?"
                 }
                 onAbortSetup() {
@@ -2384,10 +2384,10 @@ Resources:
                 }
                 configureKeepAlive() {
                     echo "" >> /etc/sysctl.conf
-                    echo "net.ipv4.tcp_keepalive_time = 60" >> /etc/sysctl.conf
-                    echo "net.ipv4.tcp_keepalive_intvl = 10" >> /etc/sysctl.conf
-                    echo "net.ipv4.tcp_keepalive_probes = 6" >> /etc/sysctl.conf
-                    sysctl -p
+                    echo "net.ipv4.tcp_keepalive_time = 60" | tee -a /etc/sysctl.conf
+                    echo "net.ipv4.tcp_keepalive_intvl = 10" | tee -a /etc/sysctl.conf
+                    echo "net.ipv4.tcp_keepalive_probes = 6" | tee -a /etc/sysctl.conf
+                    sysctl -p -q 
                 }
                 createRDSKeyGroup() {
                     logBeginAct "Preparing RDS SSLKeyGroup..."
@@ -2476,7 +2476,17 @@ Resources:
                 }
                 setcapAppFirewallCore() {
                     logBeginAct "Executing setcap on $DSROOT/AppFirewallCore"
-                    setcap 'cap_net_raw,cap_net_admin=eip cap_net_bind_service=ep' $DSROOT/AppFirewallCore
+                    DS_VER=$($DSROOT/AppBackendService VERSION)
+                    DS_VER_MAJ=${!DS_VER:0:1}
+                    DS_VER_MIN=${!DS_VER:2:1}
+                    if [ $DS_VER_MAJ -ge 9 ]; then
+                      log "No setcap required for $DS_VER"
+                    elif  [ $DS_VER_MAJ -eq 8 ] && [ $DS_VER_MIN -ge 1 ]; then
+                      log "No setcap required for $DS_VER"
+                    else
+                      log "Executing setcap"
+                      setcap 'cap_net_raw,cap_net_admin=eip cap_net_bind_service=ep' $DSROOT/AppFirewallCore
+                    fi
                     logEndAct "Execution finished. Exit code is - $?"
                 }
                 setDictionaryLicense()
@@ -2498,9 +2508,9 @@ Resources:
               group: ec2-user
             /opt/cooked/datasunrise.fc:
               content: !Sub |
-                /opt/datasunrise/AppBackendService		--	gen_context(system_u:object_r:datasunrise_exec_t,s0)
-                /opt/datasunrise/AppFirewallCore		--	gen_context(system_u:object_r:datasunrise_exec_t,s0)
-                /opt/datasunrise(/.*)?				gen_context(system_u:object_r:datasunrise_var_t,s0)
+                /opt/datasunrise/AppBackendService        --    gen_context(system_u:object_r:datasunrise_exec_t,s0)
+                /opt/datasunrise/AppFirewallCore        --    gen_context(system_u:object_r:datasunrise_exec_t,s0)
+                /opt/datasunrise(/.*)?                gen_context(system_u:object_r:datasunrise_var_t,s0)
               mode: '000644'
               owner: ec2-user
               group: ec2-user
@@ -2976,8 +2986,8 @@ Resources:
               #!/bin/bash
               
               echo "CloudFormation script has been started"
-              
-              yum update -y
+              shopt -s extglob
+              yum update -y -q
               
               CFS_BGN_TS=$(date +%s.%N)
               CFSTACKNAME=${AWS::StackName}

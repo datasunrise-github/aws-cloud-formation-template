@@ -3,41 +3,41 @@ Description: DataSunrise Database and Data Security - Network Load Balancer univ
 Mappings:
   RegionMap:
     eu-central-1:
-      AMI: ami-0c10bd728c5e75a37
+      AMI: ami-05723fb6a5f5436fd
     eu-north-1:
-      AMI: ami-063c601c091bba7e4
+      AMI: ami-0054e32a00a3dc642
     ap-south-1:
-      AMI: ami-0a6409e505ca3248a
+      AMI: ami-071a28a64ad00246c
     eu-west-3:
-      AMI: ami-0d601465cf1801b8f
+      AMI: ami-01434086ae7c8037e
     eu-west-2:
-      AMI: ami-0335423453a4a04bf
+      AMI: ami-0800d6bd0674c7955
     eu-west-1:
-      AMI: ami-0f91965eecb4aab47
+      AMI: ami-0fefce18946cc159b
     ap-northeast-2:
-      AMI: ami-01bb326521978ff4d
+      AMI: ami-05a38e292c2008dc4
     me-south-1:
-      AMI: ami-0a6409e505ca3248a
+      AMI: ami-0a971a9deb3c84ad3
     ap-northeast-1:
-      AMI: ami-049b271fe7e72b630
+      AMI: ami-0e011529752eb51ce
     sa-east-1:
-      AMI: ami-067db20bbdd2b3e92
+      AMI: ami-08937830571830b89
     ca-central-1:
-      AMI: ami-058b8f0b3281c957f
+      AMI: ami-06dcc14f165f6b50e
     ap-east-1:
-      AMI: ami-0f181204ca82e52c5
+      AMI: ami-0a68e007e469e611f
     ap-southeast-1:
-      AMI: ami-080ec51ae3052c9c6
+      AMI: ami-0bdc5c15c5b3c6419
     ap-southeast-2:
-      AMI: ami-09c19551f17d30c60
+      AMI: ami-04feb55292ce81819
     us-east-1:
-      AMI: ami-070a4fb232dd254b0
+      AMI: ami-03050493ff7c82abc
     us-east-2:
-      AMI: ami-00642b9ed83f773d3
+      AMI: ami-0d241da7147a19ccb
     us-west-1:
-      AMI: ami-0f2df0c84084684e4
+      AMI: ami-0beb8894f82e7435c
     us-west-2:
-      AMI: ami-0db8d00968728a94b
+      AMI: ami-0ff1d02db6c367d54
   Consts:
     V1:
       AMIProductCode: e4d3d3b6266ocd12it8gny7gh
@@ -2020,10 +2020,10 @@ Resources:
               content: !Sub |
                 #!/bin/bash
                   makeItMineParam() {
-                      chown datasunrise:datasunrise -R "$1"
+                      chown -R datasunrise:datasunrise "$1"
                   }
                   makeItMine() {
-                      chown datasunrise:datasunrise -R *
+                      chown -R datasunrise:datasunrise !(PortBinder|AppFirewallCore_Sniffer)
                   }
                   cleanLogs() {
                       logBeginAct "Clean DS logs..."
@@ -2064,7 +2064,7 @@ Resources:
                     logBeginAct "Install DataSunrise..."
                         DS_INSTALLER=DSCustomBuild.run
                           if [[ "${!DSDISTURL:0:2}" == "S3" || "${!DSDISTURL:0:2}" == "s3" ]]; then
-                              aws s3 cp "$DSDISTURL" $DS_INSTALLER
+                              aws s3 cp "$DSDISTURL" $DS_INSTALLER --only-show-errors
                           else
                               wget "$DSDISTURL" -O $DS_INSTALLER -q
                           fi
@@ -2081,7 +2081,7 @@ Resources:
                     fi
                     chmod +x $DS_INSTALLER
                     log "Using binary: '$DS_INSTALLER'"
-                    local DS_INSTALLER_CMD="./$DS_INSTALLER --target tmp install -f --no-password --no-start"
+                    local DS_INSTALLER_CMD="./$DS_INSTALLER --noprogress --target tmp install -f --no-password --no-start"
                     $DS_INSTALLER_CMD
                     RETVAL=$?
                     log "Result of '$DS_INSTALLER_CMD' is $RETVAL"
@@ -2100,7 +2100,7 @@ Resources:
                     setenforce 0
                     #setting selinux Current mode: permissive
                     ######################################################
-                    restorecon -vRF /opt/datasunrise/
+                    restorecon -vRF /opt/datasunrise/ > /dev/null
                     semanage port -a -t datasunrise_port_t -p tcp 11000-11010
                     semanage port -a -t datasunrise_port_t -p tcp $TRG_DBPORT
                     #semanage port -a -t datasunrise_port_t -p tcp $TRG_ADDITIONAL_INTERFACE_PORT
@@ -2138,7 +2138,7 @@ Resources:
                         cp appfirewall-hb.reg /opt/datasunrise/appfirewall.reg
                     fi
                     makeItMine
-                    #cleanLogs
+                    cleanLogs
                     cleanSQLite
                     logEndAct "Install DataSunrise result - $RETVAL"
                   }
@@ -2260,7 +2260,7 @@ Resources:
                       return 1
                     fi
                 }
-                checkNeigbrours()
+                checkNeighbours()
                 {
                   logBeginAct "Checking neigbour instances from my ASG..."
                   TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
@@ -2287,7 +2287,7 @@ Resources:
                   if [ $? == 1 ]; then
                     copyProxy
                   else
-                    checkNeigbrours
+                    checkNeighbours
                     if [ $? == 0 ]; then
                       setupProxy
                     else
@@ -2354,7 +2354,7 @@ Resources:
                     fi
                     echo "$DSLicenseKey" > /tmp/appfirewall.reg
                     mv /tmp/appfirewall.reg $DSROOT/
-                    makeItMineParam $DSROOT/
+                    makeItMineParam $DSROOT/appfirewall.pem
                     logEndAct "Setup license result - $?"
                 }
                 onAbortSetup() {
@@ -2384,10 +2384,10 @@ Resources:
                 }
                 configureKeepAlive() {
                     echo "" >> /etc/sysctl.conf
-                    echo "net.ipv4.tcp_keepalive_time = 60" >> /etc/sysctl.conf
-                    echo "net.ipv4.tcp_keepalive_intvl = 10" >> /etc/sysctl.conf
-                    echo "net.ipv4.tcp_keepalive_probes = 6" >> /etc/sysctl.conf
-                    sysctl -p
+                    echo "net.ipv4.tcp_keepalive_time = 60" | tee -a /etc/sysctl.conf
+                    echo "net.ipv4.tcp_keepalive_intvl = 10" | tee -a /etc/sysctl.conf
+                    echo "net.ipv4.tcp_keepalive_probes = 6" | tee -a /etc/sysctl.conf
+                    sysctl -p -q
                 }
                 createRDSKeyGroup() {
                     logBeginAct "Preparing RDS SSLKeyGroup..."
@@ -2476,7 +2476,17 @@ Resources:
                 }
                 setcapAppFirewallCore() {
                     logBeginAct "Executing setcap on $DSROOT/AppFirewallCore"
-                    setcap 'cap_net_raw,cap_net_admin=eip cap_net_bind_service=ep' $DSROOT/AppFirewallCore
+                    DS_VER=$($DSROOT/AppBackendService VERSION)
+                    DS_VER_MAJ=${!DS_VER:0:1}
+                    DS_VER_MIN=${!DS_VER:2:1}
+                    if [ $DS_VER_MAJ -ge 9 ]; then
+                      log "No setcap required for $DS_VER"
+                    elif  [ $DS_VER_MAJ -eq 8 ] && [ $DS_VER_MIN -ge 1 ]; then
+                      log "No setcap required for $DS_VER"
+                    else
+                      log "Applying capabilities "
+                      setcap 'cap_net_raw,cap_net_admin=eip cap_net_bind_service=ep' $DSROOT/AppFirewallCore
+                    fi
                     logEndAct "Execution finished. Exit code is - $?"
                 }
                 setDictionaryLicense()
@@ -2498,9 +2508,9 @@ Resources:
               group: ec2-user
             /opt/cooked/datasunrise.fc:
               content: !Sub |
-                /opt/datasunrise/AppBackendService		--	gen_context(system_u:object_r:datasunrise_exec_t,s0)
-                /opt/datasunrise/AppFirewallCore		--	gen_context(system_u:object_r:datasunrise_exec_t,s0)
-                /opt/datasunrise(/.*)?				gen_context(system_u:object_r:datasunrise_var_t,s0)
+                /opt/datasunrise/AppBackendService        --    gen_context(system_u:object_r:datasunrise_exec_t,s0)
+                /opt/datasunrise/AppFirewallCore    --    gen_context(system_u:object_r:datasunrise_exec_t,s0)
+                /opt/datasunrise(/.*)?                gen_context(system_u:object_r:datasunrise_var_t,s0)
               mode: '000644'
               owner: ec2-user
               group: ec2-user
@@ -2977,8 +2987,8 @@ Resources:
               #!/bin/bash
               
               echo "CloudFormation script has been started"
-              
-              yum update -y
+              shopt -s extglob
+              yum update -y -q
               
               CFS_BGN_TS=$(date +%s.%N)
               CFSTACKNAME=${AWS::StackName}
