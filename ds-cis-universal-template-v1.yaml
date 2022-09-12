@@ -605,8 +605,7 @@ Parameters:
     Type: String
     Description: >-
       The instance type that allocates the computational, network, and memory
-      capacity required by planned workload of this instance. t2.micro by
-      default is free tier eligible
+      capacity required by planned workload of this instance.
     Default: m5.2xlarge
     AllowedValues:
       - t3.medium
@@ -2567,6 +2566,11 @@ Resources:
                 corenet_port(datasunrise_port_t)
                 #permissive datasunrise_t;
                 require {
+                    type cloud_init_t;
+                    type rngd_t;
+                    type systemd_logind_t;
+                    type useradd_t;
+                    type groupadd_t;
                 	type bin_t;
                 	type cgroup_t;
                 	type cluster_port_t;
@@ -2597,6 +2601,7 @@ Resources:
                 	type user_home_dir_t;
                 	type user_t;
                 	type usr_t;
+                    class dbus { send_msg };
                 	class chr_file { getattr open read };
                 	class dir { add_name create getattr open read remove_name rmdir search setattr write };
                 	class file { append create execute execute_no_trans getattr ioctl lock open read setattr unlink write };
