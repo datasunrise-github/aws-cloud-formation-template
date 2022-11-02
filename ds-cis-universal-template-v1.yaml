@@ -3,41 +3,41 @@ Description: DataSunrise Database and Data Security - Network Load Balancer univ
 Mappings:
   RegionMap:
     eu-central-1:
-      AMI: ami-008d5438ba0ed26d8
+      AMI: ami-0b933dba2852609c6
     eu-north-1:
-      AMI: ami-0798c82fcac0a9313
+      AMI: ami-04e7cde52cc507803
     ap-south-1:
-      AMI: ami-01359c5295157810b
+      AMI: ami-0f930754d54599004
     eu-west-3:
-      AMI: ami-0cc9ff9042cd7b2b3
+      AMI: ami-01cb8d52239445617
     eu-west-2:
-      AMI: ami-054cde864da72b838
+      AMI: ami-0dd8ad356a7e36161
     eu-west-1:
-      AMI: ami-040442cb64d7f9f4c
+      AMI: ami-02aa8916e11837d6c
     ap-northeast-2:
-      AMI: ami-0c9687b7ab07cbfdb
+      AMI: ami-000b8904e0672b7f7
     me-south-1:
-      AMI: ami-0dcba426f0296ae80
+      AMI: ami-012ebfd64da384d34
     ap-northeast-1:
-      AMI: ami-09cc0dcb5f812a5f8
+      AMI: ami-001d935fcc4a894e8
     sa-east-1:
-      AMI: ami-0e5dc860ee4e6cec0
+      AMI: ami-02bc39050ed7d18e3
     ca-central-1:
-      AMI: ami-0913e0599147e56bd
+      AMI: ami-0d6683ecffc8e3810
     ap-east-1:
-      AMI: ami-088cdcebb26beca19
+      AMI: ami-0d7f3f745c010a3b7
     ap-southeast-1:
-      AMI: ami-06482bd9734a319b7
+      AMI: ami-06cf0bcc6ba357abd
     ap-southeast-2:
-      AMI: ami-0935b0cc19be9d34f
+      AMI: ami-0dec988abf70d2baa
     us-east-1:
-      AMI: ami-0f38c03a0976c3573
+      AMI: ami-032d9990e50b2b920
     us-east-2:
-      AMI: ami-0cd808f3c64466a78
+      AMI: ami-0c57690a5c4af42e2
     us-west-1:
-      AMI: ami-0e221198efba52f03
+      AMI: ami-09fd54edc3ccf54d2
     us-west-2:
-      AMI: ami-06892a279d2fc83cf
+      AMI: ami-0559ba9c51edfdb41
   Consts:
     V1:
       AMIProductCode: e4d3d3b6266ocd12it8gny7gh
@@ -66,13 +66,13 @@ Mappings:
       AuditEnginePg: postgres
       AuditEngineMy: mysql
       AuditEngineMs: sqlserver-se
-      EngineVersionPg: '14.2'
-      EngineVersionMy: '5.7.37'
-      EngineVersionMs: '14.00.3401.7.v1'
+      EngineVersionPg: '14'
+      EngineVersionMy: '5.7'
+      EngineVersionMs: '14.00'
       AuditAuroraEnginePg: aurora-postgresql
       AuditAuroraEngineMy: aurora-mysql
-      AuditAuroraEngineVersionPg: '13.6'
-      AuditAuroraEngineVersionMy: '5.7.37'
+      AuditAuroraEngineVersionPg: '13'
+      AuditAuroraEngineVersionMy: '5.7'
       ParameterGroupFamilyPg: 'postgres14'
       ParameterGroupFamilyMy: 'MySQL5.7'
       DictionaryParameterGroupFamilyMs: 'sqlserver-se-14.0'
