@@ -3,41 +3,41 @@ Description: DataSunrise Database and Data Security - Network Load Balancer univ
 Mappings:
   RegionMap:
     eu-central-1:
-      AMI: ami-0b933dba2852609c6
+      AMI: ami-0c12173285fcd4131
     eu-north-1:
-      AMI: ami-04e7cde52cc507803
+      AMI: ami-026f6f7065f4dbcd3
     ap-south-1:
-      AMI: ami-0f930754d54599004
+      AMI: ami-0bc418b271943c69d
     eu-west-3:
-      AMI: ami-01cb8d52239445617
+      AMI: ami-086967c69ad397ccf
     eu-west-2:
-      AMI: ami-0dd8ad356a7e36161
+      AMI: ami-08eccb342133a4259
     eu-west-1:
-      AMI: ami-02aa8916e11837d6c
+      AMI: ami-09275ed96b185ce15
     ap-northeast-2:
-      AMI: ami-000b8904e0672b7f7
+      AMI: ami-01a8a39bcab816c75
     me-south-1:
-      AMI: ami-012ebfd64da384d34
+      AMI: ami-0eb360fa0e6bf166b
     ap-northeast-1:
-      AMI: ami-001d935fcc4a894e8
+      AMI: ami-0aa54a68e57c812f9
     sa-east-1:
-      AMI: ami-02bc39050ed7d18e3
+      AMI: ami-099d8126f727323de
     ca-central-1:
-      AMI: ami-0d6683ecffc8e3810
+      AMI: ami-0eeb0af4208ec6471
     ap-east-1:
-      AMI: ami-0d7f3f745c010a3b7
+      AMI: ami-05f0e6faec7d889f8
     ap-southeast-1:
-      AMI: ami-06cf0bcc6ba357abd
+      AMI: ami-0487d68ba26d82444
     ap-southeast-2:
-      AMI: ami-0dec988abf70d2baa
+      AMI: ami-032ea697bb7cdced0
     us-east-1:
-      AMI: ami-032d9990e50b2b920
+      AMI: ami-04eec53a394f79131
     us-east-2:
-      AMI: ami-0c57690a5c4af42e2
+      AMI: ami-08414230ec73accc0
     us-west-1:
-      AMI: ami-09fd54edc3ccf54d2
+      AMI: ami-0392f82614a6afbff
     us-west-2:
-      AMI: ami-0559ba9c51edfdb41
+      AMI: ami-0faafe638d4572622
   Consts:
     V1:
       AMIProductCode: e4d3d3b6266ocd12it8gny7gh
@@ -2974,9 +2974,8 @@ Resources:
         - true
         - false
       BlockDeviceMappings:
-        - DeviceName: /dev/xvda
+        - DeviceName: /dev/sda1
           Ebs:
-            VolumeType: gp2
             DeleteOnTermination: true
             VolumeSize: 20
       MetadataOptions:
