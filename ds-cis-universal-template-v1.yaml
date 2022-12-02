@@ -2974,7 +2974,7 @@ Resources:
         - true
         - false
       BlockDeviceMappings:
-        - DeviceName: /dev/sda1
+        - DeviceName: /dev/xvda
           Ebs:
             DeleteOnTermination: true
             VolumeSize: 20
