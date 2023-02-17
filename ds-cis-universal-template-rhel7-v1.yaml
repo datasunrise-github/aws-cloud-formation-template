@@ -584,7 +584,7 @@ Parameters:
       (Optional) In some cases of using private networks it is necessary to set
       up proxy for AWS CLI (PutMetrics/S3). For example
       http://[username[:password]@]<proxy_host>:<proxy_port>
-    AllowedPattern: '(https?:\/\/((\S*@)?([a-zA-Z1-9.-]+(:\d{1,5}){1})))?'
+    AllowedPattern: '(https?:\/\/((\S*@)?([a-zA-Z0-9.-]+(:\d{1,5}){1})))?'
     ConstraintDescription: 'You need specify the connection in a similar format "http://[username[:password]@]<proxy_host>:<proxy_port>"'
   AlarmEmail:
     Type: String
