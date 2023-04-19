@@ -578,6 +578,19 @@ Parameters:
     NoEcho: 'true'
     Description: Password for target database user.
     AllowedPattern: .+
+  TDBSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup::Id'
+    Description: Security Group of the Database to be protected.
+  TDBEncryption:
+    Type: String
+    Description: >-
+      (Optional) Use Encryption when connecting to the database (supported only
+      for Aurora MySQL, MySQL, MariaDB, Cassandra, DB2, DynamoDB, MongoDB, Oracle,
+      SAP HANA)
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Default: 'false'
   AWSCLIProxy:
     Type: String
     Description: >-
@@ -769,9 +782,6 @@ Parameters:
       (Optional) KMS Key ARN that was used for S3 bucket encryption. The key is
       needed for DSDistribution download possibility. In case the bucket is not
       encrypted, leave this field empty.
-  TDBSecurityGroup:
-    Type: 'AWS::EC2::SecurityGroup::Id'
-    Description: Security Group of the Database to be protected.
   SubnetsConfig:
     Type: 'List<AWS::EC2::Subnet::Id>'
     Description: >-
@@ -856,6 +866,7 @@ Metadata:
           - TDBLogin
           - TDBPassword
           - TDBSecurityGroup
+          - TDBEncryption
       - Label:
           default: Auto Scaling Group Configuration
         Parameters:
@@ -1665,6 +1676,7 @@ Resources:
                 TRG_DBPORT=${TDBPort}
                 TRG_DBNAME="${TDBName}"
                 TRG_DBUSER="${TDBLogin}"
+                TRG_ENCRYPTION="${TDBEncryption}"
 
                 HA_DBTYPE=${DictionaryInternalParameter}
                 HA_DBHOST=${DSDictionaryDB.Endpoint.Address}
@@ -2198,8 +2210,12 @@ Resources:
                     loginAsAdmin
                     if [ $RETVAL == 0 ]; then
                         local XTRA_ARGS=
+                        local ENCRYPTION_ARGS=
                         if [ "$TRG_DBTYPE" = "Oracle" ]; then
                             XTRA_ARGS="-instance $TRG_DBNAME"
+                        fi
+                        if "$TRG_ENCRYPTION" && [[ "$TRG_DBTYPE" =~ ^(Aurora MySQL|MySQL|MariaDB|Cassandra|DB2|DynamoDB|MongoDB|Oracle|SAP HANA)$ ]]; then
+                            ENCRYPTION_ARGS="-ssl"
                         fi
                         logBeginAct "addInstancePlus $TRG_INSTNAME..."
                         $DSROOT/cmdline/executecommand.sh addInstancePlus -name "$TRG_INSTNAME" $XTRA_ARGS\
@@ -2211,7 +2227,8 @@ Resources:
                             -password "$TRG_DBPASSWD" \
                             -proxyHost "$DS_HOST_PRIVIP" \
                             -proxyPort "$TRG_DBPORT" \
-                            -savePassword ds
+                            -savePassword ds \
+                            $ENCRYPTION_ARGS
                         RETVAL=$?
                         if [ $RETVAL == 0 ]; then
                             logBeginAct "Add AuditRuleAdmin..."
