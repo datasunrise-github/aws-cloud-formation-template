@@ -406,8 +406,7 @@ Parameters:
     MinLength: '5'
   DSDistributionUrl:
     Type: String
-    Description: 'Url of the DataSunrise distribution package. Make sure that this URL will be accessible from your VPC. You may also use the path to the DataSunrise build placed in your S3 bucket, however, make sure to modify the S3AccessPolicy section of this template. || Example: s3://bucketnmae/installername.rpm || Example: https://linktothebuild'
-    AllowedPattern: .+
+    Description: '(Optional) Url of the DataSunrise distribution package. Make sure that this URL will be accessible from your VPC. You may also use the path to the DataSunrise build placed in your S3 bucket, however, make sure to modify the S3AccessPolicy section of this template. || Example: s3://bucketnmae/installername.rpm || Example: https://linktothebuild'
   DSLicenseType:
     Type: String
     Default: BYOL
@@ -2071,18 +2070,24 @@ Resources:
                 installProduct() {
                     RETVAL=0
                     logBeginAct "Install DataSunrise..."
+                    DS_INSTALLER=installer.rpm
+                    if [ -z "$DSDISTURL" ]; then
+                        log " Distribution URL is empty. Using stock installer."
+                        ls -la
+                    else
                         DS_INSTALLER=DSCustomBuild.rpm
-                          if [[ "${!DSDISTURL:0:2}" == "S3" || "${!DSDISTURL:0:2}" == "s3" ]]; then
-                              aws s3 cp "$DSDISTURL" $DS_INSTALLER --only-show-errors
-                          else
-                              wget "$DSDISTURL" -O $DS_INSTALLER -q
-                          fi
-                          if [[ "$?" != "0" ]]; then
-                              log " Download was not successful, please check that URL is correct and available for downloading or S3AccessPolicy allows access to the bucket with the distribution file."
-                              log " Installation will be interrupted."
-                              RETVAL=2
-                              return $RETVAL
-                          fi
+                        if [[ "${!DSDISTURL:0:2}" == "S3" || "${!DSDISTURL:0:2}" == "s3" ]]; then
+                            aws s3 cp "$DSDISTURL" $DS_INSTALLER --only-show-errors
+                        else
+                            wget "$DSDISTURL" -O $DS_INSTALLER -q
+                        fi
+                        if [[ "$?" != "0" ]]; then
+                            log " Download was not successful, please check that URL is correct and available for downloading or S3AccessPolicy allows access to the bucket with the distribution file."
+                            log " Installation will be interrupted."
+                            RETVAL=2
+                            return $RETVAL
+                        fi
+                    fi
                     if [ -z "$DS_INSTALLER" ]; then
                         logEndAct "DataSunrise binary not found!"
                         RETVAL=2
