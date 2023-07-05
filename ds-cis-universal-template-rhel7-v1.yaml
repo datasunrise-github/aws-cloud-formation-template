@@ -57,6 +57,8 @@ Mappings:
       AuditInternalParameterPg: '1'
       AuditInternalParameterMy: '2'
       AuditInternalParameterMs: '6'
+      AuditInternalParameterAuMy: '4'
+      AuditInternalParameterAuPg: '7'
       DictionaryInternalParameterPg: postgresql
       DictionaryInternalParameterMy: mysql
       DictionaryInternalParameterMs: mssql
@@ -66,19 +68,19 @@ Mappings:
       AuditEnginePg: postgres
       AuditEngineMy: mysql
       AuditEngineMs: sqlserver-se
-      EngineVersionPg: '14'
-      EngineVersionMy: '5.7'
+      EngineVersionPg: '15'
+      EngineVersionMy: '8.0'
       EngineVersionMs: '14.00'
       AuditAuroraEnginePg: aurora-postgresql
       AuditAuroraEngineMy: aurora-mysql
-      AuditAuroraEngineVersionPg: '13'
-      AuditAuroraEngineVersionMy: '5.7'
-      ParameterGroupFamilyPg: 'postgres14'
-      ParameterGroupFamilyMy: 'MySQL5.7'
+      AuditAuroraEngineVersionPg: '15'
+      AuditAuroraEngineVersionMy: '8.0'
+      ParameterGroupFamilyPg: 'postgres15'
+      ParameterGroupFamilyMy: 'MySQL8.0'
       DictionaryParameterGroupFamilyMs: 'sqlserver-se-14.0'
       AuditParameterGroupFamilyMs: 'sqlserver-se-14.0'
-      ParameterGroupFamilyPgCluster: aurora-postgresql13
-      ParameterGroupFamilyMyCluster: aurora-mysql5.7
+      ParameterGroupFamilyPgCluster: aurora-postgresql15
+      ParameterGroupFamilyMyCluster: aurora-mysql8.0
       PostgresLicenseModel: 'postgresql-license'
       MysqlLicenseModel: 'general-public-license'
       MssqlLicenseModel: 'license-included'
@@ -1260,6 +1262,18 @@ Resources:
               - 'kms:DescribeKey'
             Resource:
               - !Join ['', [!Ref BucketKeyARN]]
+  RDSDescribeDBClustersPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Condition: isAuroraCluster
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'rds:DescribeDBClusters'
+            Resource:
+              - !Join [ '',[ 'arn:aws:rds:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':cluster:', !Ref DSAuditDBCluster ] ]
   DSVMRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -1268,6 +1282,7 @@ Resources:
         - !If [HasS3Name, !Ref S3AccessPolicy, !Ref 'AWS::NoValue']
         - !If [HasBucketKeyARN, !Ref KMSAccessPolicy, !Ref 'AWS::NoValue']
         - !If [s3link, !Ref S3GetDistributionPolicy, !Ref 'AWS::NoValue']
+        - !If [isAuroraCluster, !Ref RDSDescribeDBClustersPolicy, !Ref 'AWS::NoValue']
         - !If [HasADJoin, 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore', !Ref 'AWS::NoValue']
         - !If [HasADJoin, 'arn:aws:iam::aws:policy/AmazonSSMDirectoryServiceAccess', !Ref 'AWS::NoValue']
       AssumeRolePolicyDocument:
@@ -1418,6 +1433,7 @@ Resources:
       EngineVersion: !If [DictionaryPostgres, !FindInMap [Consts, V1, EngineVersionPg], !If [DictionaryMysql, !FindInMap [Consts, V1, EngineVersionMy], !FindInMap [Consts, V1, EngineVersionMs]]]
       DBInstanceClass: !Ref DictionaryDBClass
       DBName: !If [DictionaryMssql, !Ref 'AWS::NoValue', !Ref DBDictName]
+      AllowMajorVersionUpgrade: true
       MultiAZ: !Ref MultiAzDictionary
       MasterUsername: !Ref DBUser
       MasterUserPassword: !Ref DBPassword
@@ -1446,6 +1462,7 @@ Resources:
       EngineVersion: !If [AuditPostgres, !FindInMap [Consts, V1, EngineVersionPg], !If [AuditMysql, !FindInMap [Consts, V1, EngineVersionMy], !FindInMap [Consts, V1, EngineVersionMs]]]
       DBInstanceClass: !Join ['', ['db.m5.', !Ref AuditDBClass]]
       DBName: !If [AuditMssql, !Ref 'AWS::NoValue', !Ref DBAuditName]
+      AllowMajorVersionUpgrade: true
       #MSSQL DOENST HAVE A NAME FOR DB SHOULD BE AWS::NOVALUE IN CASE ITS MSSQL
       MultiAZ: !Ref MultiAzAudit
       MasterUsername: !Ref DBUser
@@ -1704,7 +1721,7 @@ Resources:
                   AMIProductCode: !FindInMap [Consts, V1, AMIProductCode],
                   CARProductCode: !FindInMap [Consts, V1, CARProductCode],
                   DictionaryInternalParameter: !If [DictionaryPostgres, !FindInMap [Consts, V1, DictionaryInternalParameterPg], !If [DictionaryMysql, !FindInMap [Consts, V1, DictionaryInternalParameterMy], !FindInMap [Consts, V1, DictionaryInternalParameterMs]]],
-                  AuditInternalParameter: !If [AuditPostgres, !FindInMap [Consts, V1, AuditInternalParameterPg], !If [AuditMysql, !FindInMap [Consts, V1, AuditInternalParameterMy], !If [AuditMssql, !FindInMap [Consts, V1, AuditInternalParameterMs], !If [AuditAuroraPostgres, !FindInMap [Consts, V1, AuditInternalParameterPg], !FindInMap [Consts, V1, AuditInternalParameterMy]]]]],
+                  AuditInternalParameter: !If [AuditPostgres, !FindInMap [Consts, V1, AuditInternalParameterPg], !If [AuditMysql, !FindInMap [Consts, V1, AuditInternalParameterMy], !If [AuditMssql, !FindInMap [Consts, V1, AuditInternalParameterMs], !If [AuditAuroraPostgres, !FindInMap [Consts, V1, AuditInternalParameterAuPg], !FindInMap [Consts, V1, AuditInternalParameterAuMy]]]]],
                   AlarmSNSTopic: !If [HasAlarm, DSTopic, ''],
                   DSAuditDBHost: !If [isAuroraCluster, !GetAtt DSAuditDBCluster.Endpoint.Address, !GetAtt DSAuditDB.Endpoint.Address],
                   DSAuditDBPort: !If [AuditPostgres, !FindInMap [Consts, V1, pgPort], !If [AuditMysql, !FindInMap [Consts, V1, myPort], !If [AuditMssql, !FindInMap [Consts, V1, msPort], !If [AuditAuroraPostgres, !FindInMap [Consts, V1, pgPort], !FindInMap [Consts, V1, myPort]]]]],
