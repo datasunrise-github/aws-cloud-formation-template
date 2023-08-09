@@ -3,41 +3,41 @@ Description: DataSunrise Database and Data Security - Network Load Balancer univ
 Mappings:
   RegionMap:
     eu-central-1:
-      AMI: ami-09738391210462a92
+      AMI: ami-0b9c5eef16d3beb80
     eu-north-1:
-      AMI: ami-08a6d1d6b0b7493e4
+      AMI: ami-0a3b706a941f4b5f8
     ap-south-1:
-      AMI: ami-058bce031b266cfe6
+      AMI: ami-058c2d5298faf5fb8
     eu-west-3:
-      AMI: ami-028437c918de56165
+      AMI: ami-03149f44ab998a936
     eu-west-2:
-      AMI: ami-01ec829cd3e756b2a
+      AMI: ami-05f5f91f4cc67fd1e
     eu-west-1:
-      AMI: ami-0b830331c20328edc
+      AMI: ami-0430b91a08e082f4d
     ap-northeast-2:
-      AMI: ami-02b93ed0df941bbd0
+      AMI: ami-097719894a6c3cdb4
     me-south-1:
-      AMI: ami-06a6a0d65d3442f8a
+      AMI: ami-07eeed0c99410e22f
     ap-northeast-1:
-      AMI: ami-0ed720899720b233f
+      AMI: ami-0a30e00b6c83eaf36
     sa-east-1:
-      AMI: ami-0747125d7d7b12caf
+      AMI: ami-0f5e383fd13a3946f
     ca-central-1:
-      AMI: ami-0475882f86d12121b
+      AMI: ami-08c85c070404e489e
     ap-east-1:
-      AMI: ami-027932fc27346574e
+      AMI: ami-0382ae34f6b2aefcb
     ap-southeast-1:
-      AMI: ami-0089d7c0698efeba2
+      AMI: ami-0a144f213d374eeb0
     ap-southeast-2:
-      AMI: ami-0e291f4e1535bbd33
+      AMI: ami-01dfb45079ecceefe
     us-east-1:
-      AMI: ami-018e4ca777784ef54
+      AMI: ami-0b8125f180fe3b482
     us-east-2:
-      AMI: ami-014b05fd2bf2a2b63
+      AMI: ami-0e94b89e3c7d67683
     us-west-1:
-      AMI: ami-0a8110e3fd3e7c740
+      AMI: ami-0db79c31aba576bfe
     us-west-2:
-      AMI: ami-0ccc72a4ced30f382
+      AMI: ami-095b83db02f2511e6
   Consts:
     V1:
       AMIProductCode: e4d3d3b6266ocd12it8gny7gh
