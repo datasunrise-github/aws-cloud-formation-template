@@ -541,6 +541,7 @@ Parameters:
       - Cassandra
       - DB2
       - DynamoDB
+      - Elasticsearch
       - Greenplum
       - Hive
       - Impala
@@ -2251,6 +2252,8 @@ Resources:
                         local ENCRYPTION_ARGS=
                         if [ "$TRG_DBTYPE" = "Oracle" ]; then
                             XTRA_ARGS="-instance $TRG_DBNAME"
+                        elif [ "$TRG_DBTYPE" = "Elasticsearch" ]; then
+                            XTRA_ARGS="-protocolType HTTP -ssl"
                         fi
                         if "$TRG_ENCRYPTION" && [[ "$TRG_DBTYPE" =~ ^(Aurora MySQL|MySQL|MariaDB|Cassandra|DB2|DynamoDB|MongoDB|Oracle|SAP HANA)$ ]]; then
                             ENCRYPTION_ARGS="-ssl"
