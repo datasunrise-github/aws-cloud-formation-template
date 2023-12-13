@@ -2489,10 +2489,10 @@ Resources:
                     logBeginAct "Audit is MSSQL, preparing audit database..."
                     local HA_AUPASSWD="`aws --region $EC2REGION secretsmanager get-secret-value --secret-id $CFDEPLOYMENTNAME-secret-config-password --query SecretString --output text`"
                     logBeginAct "Preparing mssql database..."
-                    cd /opt/mssql-tools18/bin/
+                    cd /opt/mssql-tools/bin/
                     echo "CREATE DATABASE $HA_AUNAME;" > createdatabaseaudit.sql
                     echo "GO" >> createdatabaseaudit.sql
-                    ./sqlcmd* -C -S $HA_AUHOST,$HA_AUPORT -U $HA_AUUSER -P $HA_AUPASSWD -i createdatabaseaudit.sql
+                    ./sqlcmd* -S $HA_AUHOST,$HA_AUPORT -U $HA_AUUSER -P $HA_AUPASSWD -i createdatabaseaudit.sql
                     rm createdatabaseaudit.sql
                     cd /opt/datasunrise 
                     logEndAct "Preparing audit database for MSSQL result - $RETVAL" 
@@ -2501,13 +2501,13 @@ Resources:
                     logBeginAct "Dictionary is MSSQL, preparing dictionary database..."
                     local HA_DBPASSWD="`aws --region $EC2REGION secretsmanager get-secret-value --secret-id $CFDEPLOYMENTNAME-secret-config-password --query SecretString --output text`"
                     logBeginAct "Preparing mssql database..."
-                    cd /opt/mssql-tools18/bin/
+                    cd /opt/mssql-tools/bin/
                     echo "CREATE DATABASE $HA_DBNAME;" > createdatabasedictionary.sql
                     echo "GO" >> createdatabasedictionary.sql
                     #ONLY FOR MSSQL EXPRESS EDITION
                     echo "ALTER DATABASE $HA_DBNAME SET AUTO_CLOSE OFF;" >> createdatabasedictionary.sql
                     echo "GO" >> createdatabasedictionary.sql
-                    ./sqlcmd* -C -S $HA_DBHOST,$HA_DBPORT -U $HA_DBUSER -P $HA_DBPASSWD -i createdatabasedictionary.sql
+                    ./sqlcmd* -S $HA_DBHOST,$HA_DBPORT -U $HA_DBUSER -P $HA_DBPASSWD -i createdatabasedictionary.sql
                     rm createdatabasedictionary.sql
                     cd /opt/datasunrise
                     logEndAct "Preparing dictonary database for MSSQL result - $RETVAL"
