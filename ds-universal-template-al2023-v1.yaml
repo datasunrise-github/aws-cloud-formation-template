@@ -1826,9 +1826,7 @@ Resources:
                         export AWS_SECURITY_TOKEN=$AWS_SESSION_TOKEN
                         EC2_AVAIL_ZONE=`curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone -H "X-aws-ec2-metadata-token: $TOKEN"`
                         EC2_REGION="`echo "$EC2_AVAIL_ZONE" | sed -e 's:\([0-9][0-9]*\)[a-z]*$:\1:'`"
-                        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-                        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-                        aws configure set default.region $EC2_REGION
+                        export AWS_DEFAULT_REGION=$EC2_REGION
                         echo "$INSTID: Using $IAM_ROLE credentials."
                     else
                         echo "$INSTID: IAM role did not attached to this instance!"
