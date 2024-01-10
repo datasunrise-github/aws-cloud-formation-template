@@ -464,6 +464,11 @@ Parameters:
       - db.m5.4xlarge
       - db.m5.12xlarge
       - db.m5.24xlarge
+      - db.m6i.large
+      - db.m6i.xlarge
+      - db.m6i.2xlarge
+      - db.m6i.4xlarge
+      - db.m6i.8xlarge
       - db.r5.large
       - db.r5.xlarge
       - db.r5.2xlarge
@@ -633,6 +638,37 @@ Parameters:
       - m5.4xlarge
       - m5.12xlarge
       - m5.24xlarge
+      - m6i.large
+      - m6i.xlarge
+      - m6i.2xlarge
+      - m6i.4xlarge
+      - m6i.8xlarge
+      - m6i.12xlarge
+      - m6i.16xlarge
+      - m6i.24xlarge
+      - m6i.32xlarge
+      - m6i.metal
+      - m6id.large
+      - m6id.xlarge
+      - m6id.2xlarge
+      - m6id.4xlarge
+      - m6id.8xlarge
+      - m6id.12xlarge
+      - m6id.16xlarge
+      - m6id.24xlarge
+      - m6id.32xlarge
+      - m6id.metal
+      - m7i.large
+      - m7i.xlarge
+      - m7i.2xlarge
+      - m7i.4xlarge
+      - m7i.8xlarge
+      - m7i.12xlarge
+      - m7i.16xlarge
+      - m7i.24xlarge
+      - m7i.48xlarge
+      - m7i.metal-24xl
+      - m7i.metal-48xl
       - c5.large
       - c5.xlarge
       - c5.2xlarge
@@ -1614,8 +1650,8 @@ Resources:
       LoadBalancerArn: !Ref DSLoadBalancer
       Port: !Ref TDBPort
       Protocol: TCP
-  DSLaunchConf:
-    Type: 'AWS::AutoScaling::LaunchConfiguration'
+  DSLaunchTemp:
+    Type: 'AWS::EC2::LaunchTemplate'
     DependsOn:
       - EC2SG
       - DSDictionaryDB
@@ -2212,6 +2248,8 @@ Resources:
                     logBeginAct "Reset Dictionary..."
                     LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService \
                         CLEAN_LOCAL_SETTINGS \
+                        PRINT_PROGRESS \
+                        REMOVE_SERVER_BY_HOST_PORT=1 \
                         DICTIONARY_TYPE="$HA_DBTYPE_LWR" \
                         DICTIONARY_HOST="$HA_DBHOST" \
                         DICTIONARY_PORT="$HA_DBPORT" \
@@ -2742,198 +2780,204 @@ Resources:
               owner: ec2-user
               group: ec2-user
     Properties:
-      KeyName: !Ref VMKeyPair
-      ImageId: !FindInMap 
-        - RegionMap
-        - !Ref 'AWS::Region'
-        - AMI
-      InstanceType: !Ref VMInstanceType
-      SecurityGroups:
-        - !Ref EC2SG
-      IamInstanceProfile: !Ref DSNodeProfile
-      InstanceMonitoring: !If 
-        - HasAlarm
-        - true
-        - false
-      BlockDeviceMappings:
-        - DeviceName: /dev/xvda
-          Ebs:
-            DeleteOnTermination: true
-            VolumeSize: 20
-      MetadataOptions:
-        HttpEndpoint: enabled
-        HttpTokens: required
-      UserData: 
-        Fn::Base64: 
-            !Sub 
-            - |
-              #!/bin/bash
-              
-              echo "CloudFormation script has been started"
-              shopt -s extglob
-              yum update -y -q
-              
-              CFS_BGN_TS=$(date +%s.%N)
-              CFSTACKNAME=${AWS::StackName}
-              CFDEPLOYMENTNAME=${DeploymentName}
-              EC2REGION=${AWS::Region}
-              DSROOT=${DSRoot}
-              DSCLOUDDIR=${DSCloudRoot}
-              mkdir -p $DSCLOUDDIR
-              /opt/aws/bin/cfn-init -v --stack $CFSTACKNAME --resource DSLaunchConf --configsets AWSLinux1 --region $EC2REGION
-              mv /opt/cooked/* $DSCLOUDDIR/
-              rm -fR /opt/cooked
-              AWS_STACK_ID_ARN=${AWS::StackId}
-              AWS_STACK_ID="${!AWS_STACK_ID_ARN##*/}"
-              echo "DSAdminPassword exporting has been started" 
-              export DSAdminPassword=`aws --region $EC2REGION secretsmanager get-secret-value --secret-id $CFDEPLOYMENTNAME-secret-admin-password --query SecretString --output text`
-              cd $DSCLOUDDIR
-              
-              # DO NOT change order!
-              echo "vm-creds execution" 
-              source vm-creds.sh
-              echo "cf-params execution" 
-              source cf-params.sh
-              log "ds-manip execution" 
-              source ds-manip.sh
-              log "ds-setup execution" 
-              source ds-setup.sh
-              log "aws-ds-setup execution" 
-              source aws-ds-setup.sh
-              log "pre-setup execution" 
-              source pre-setup.sh
-              
-              log "Setting up time zone" 
-              mv /etc/localtime /etc/prev-localtime-bak
-              timedatectl set-timezone "${timeZone}"
-              
-              log "Setting up Cloud Watch Alarm" 
-              setupCloudWatch
-              
-              if [ -z "$AWS_DS_ID" ] ; then
-                  log "No AD integration"
-              else
-                  logBeginAct "Start AD integration..." 
-                  source ad-setup.sh
-
-                  adGetInfo
-                  if [ -z "$AWS_DS_NAME" ] ; then
-                      log "Fetching AD info failed! No AD integration."
-                  else
-                      adSetupKerberos
-                      adAddDNSToHosts
-                      adSetupResolver
-                      adJoin
-                  fi
-              fi
-              
-              if [ -z "$HA_DBHOST" ] || [ -z "$HA_DBPORT" ]; then
-                  logEndAct "Dictionary RDS not found! Goodbye..."
-                  onAbortSetup
-                  exit $RETVAL
-              fi
-              if [ -z "$HA_AUHOST" ] || [ -z "$HA_AUPORT" ]; then
-                  logEndAct "Audit RDS not found! Goodbye..."
-                  onAbortSetup
-                  exit $RETVAL
-              fi
-              installProduct
-              if [ "$RETVAL" != "0" ]; then
-                  logEndAct "Installation Error! Goodbye..."
-                  onAbortSetup
-                  exit $RETVAL
-              fi
-              # Installation OK, continue
-              makeItMine
-              logBeginAct "Setup DataSunrise..."
-              cd $DSROOT
-              FIRST_NODE=0
-              if [ ${currentDictionaryType} == "MSSQL" ]; then
-                  prepareMsDictionary
-              fi
-              resetDict
-              setDictionaryLicense
-              if [ "$RETVAL" == "93" ]; then
-                  FIRST_NODE=1
-                  logBeginAct "Setup First Node of DataSunrise..."
-                  resetAdminPassword
-              elif [ "$RETVAL" == "94" ]; then
-                  FIRST_NODE=0
-                  logBeginAct "Setup Next Node of DataSunrise..."
-              else
-                  logEndAct "Setup Dictionary Error! Goodbye..."
-                  onAbortSetup
-                  exit $RETVAL
-              fi
-              if [ ${currentAuditType} == "MSSQL" ]; then
-                  prepareMsAudit
-              fi
-              resetAudit
-              if [ "$RETVAL" != "96" ]; then
-                  logEndAct "Setup Audit Error! Goodbye..."
-                  onAbortSetup
-                  exit $RETVAL
-              fi
-              setInstallationType
-              makeItMine
-              cleanLogs
-              service datasunrise start
-              sleep 20
-              if [ "$FIRST_NODE" == "1" ]; then
-                  setupProxy
-                  setupCleaningTask
-              else
-                  processSetupOrCopy
-                  runCleaningTask
-              fi
-              logEndAct "Create/copy proxy done - $?"
-              if [ "$FIRST_NODE" == "1" ]; then
-                  if [ -n "$BackupS3BucketName" ]; then
-                      setupBackupParams
-                  fi
-                  if [ -n "$AWSCLIProxy" ]; then
-                      setupHttpProxy
-                  fi
-                  setupAdditionals
-              fi
-              setupBackupActions
-              service datasunrise stop
-              makeItMine
-              cleanLogs
-              configureKeepAlive
-              configureJVM
-              setcapAppFirewallCore
-              service datasunrise start
-              CFS_END_TS=$(date +%s.%N)
-              CFS_ELLAPSED=$(echo "$CFS_END_TS - $CFS_BGN_TS" | bc)
-              logEndAct "Setup DataSunrise finished in $CFS_ELLAPSED sec."
-              uploadSetupLogs
-              setupCWLogUploading
-              logBeginAct "Fixfiles..."
-              fixfiles -FB onboot
-              logEndAct "Fixfiles done - $?"
-              logBeginAct "SElinux summary:"
-              ausearch -m AVC -ts recent
-              logEndAct "SElinux summary done - $?"
-              echo -ne "*/1 * * * * root $DSCLOUDDIR/scriptcron.sh ${LFName} ${ASGName} ${SecretId}\n" | tee --append /etc/crontab
-            - {
-                  SecretId: !Join ['',[!Ref DeploymentName, '-secret-admin-password']],
-                  LFName: !Join ['', [!Ref DeploymentName, '-hook']],
-                  ASGName: !Join [ '', [!Ref DeploymentName, '-asg']],
-                  DSCloudRoot: !FindInMap [Consts, V1, DSCloudRoot],
-                  DSRoot: !FindInMap [Consts, V1, DSRoot],
-                  currentAuditType: !Ref AuditType,
-                  currentDictionaryType: !Ref DictionaryType,
-                  timeZone: !Ref TimeZone
-              }
+      LaunchTemplateName: !Join [ '', [!Ref DeploymentName, '-lt']]
+      LaunchTemplateData:
+        KeyName: !Ref VMKeyPair
+        ImageId: !FindInMap
+          - RegionMap
+          - !Ref 'AWS::Region'
+          - AMI
+        InstanceType: !Ref VMInstanceType
+        SecurityGroupIds:
+          - !Ref EC2SG
+        IamInstanceProfile:
+          Name: !Ref DSNodeProfile
+        Monitoring:
+          Enabled: !If
+            - HasAlarm
+            - true
+            - false
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              DeleteOnTermination: true
+              VolumeSize: 20
+        MetadataOptions:
+          HttpEndpoint: enabled
+          HttpTokens: required
+        UserData:
+          Fn::Base64:
+              !Sub
+              - |
+                #!/bin/bash
+                
+                echo "CloudFormation script has been started"
+                shopt -s extglob
+                yum update -y -q
+                
+                CFS_BGN_TS=$(date +%s.%N)
+                CFSTACKNAME=${AWS::StackName}
+                CFDEPLOYMENTNAME=${DeploymentName}
+                EC2REGION=${AWS::Region}
+                DSROOT=${DSRoot}
+                DSCLOUDDIR=${DSCloudRoot}
+                mkdir -p $DSCLOUDDIR
+                /opt/aws/bin/cfn-init -v --stack $CFSTACKNAME --resource DSLaunchTemp --configsets AWSLinux1 --region $EC2REGION
+                mv /opt/cooked/* $DSCLOUDDIR/
+                rm -fR /opt/cooked
+                AWS_STACK_ID_ARN=${AWS::StackId}
+                AWS_STACK_ID="${!AWS_STACK_ID_ARN##*/}"
+                echo "DSAdminPassword exporting has been started" 
+                export DSAdminPassword=`aws --region $EC2REGION secretsmanager get-secret-value --secret-id $CFDEPLOYMENTNAME-secret-admin-password --query SecretString --output text`
+                cd $DSCLOUDDIR
+                
+                # DO NOT change order!
+                echo "vm-creds execution" 
+                source vm-creds.sh
+                echo "cf-params execution" 
+                source cf-params.sh
+                log "ds-manip execution" 
+                source ds-manip.sh
+                log "ds-setup execution" 
+                source ds-setup.sh
+                log "aws-ds-setup execution" 
+                source aws-ds-setup.sh
+                log "pre-setup execution" 
+                source pre-setup.sh
+                
+                log "Setting up time zone" 
+                mv /etc/localtime /etc/prev-localtime-bak
+                timedatectl set-timezone "${timeZone}"
+                
+                log "Setting up Cloud Watch Alarm" 
+                setupCloudWatch
+                
+                if [ -z "$AWS_DS_ID" ] ; then
+                    log "No AD integration"
+                else
+                    logBeginAct "Start AD integration..." 
+                    source ad-setup.sh
+  
+                    adGetInfo
+                    if [ -z "$AWS_DS_NAME" ] ; then
+                        log "Fetching AD info failed! No AD integration."
+                    else
+                        adSetupKerberos
+                        adAddDNSToHosts
+                        adSetupResolver
+                        adJoin
+                    fi
+                fi
+                
+                if [ -z "$HA_DBHOST" ] || [ -z "$HA_DBPORT" ]; then
+                    logEndAct "Dictionary RDS not found! Goodbye..."
+                    onAbortSetup
+                    exit $RETVAL
+                fi
+                if [ -z "$HA_AUHOST" ] || [ -z "$HA_AUPORT" ]; then
+                    logEndAct "Audit RDS not found! Goodbye..."
+                    onAbortSetup
+                    exit $RETVAL
+                fi
+                installProduct
+                if [ "$RETVAL" != "0" ]; then
+                    logEndAct "Installation Error! Goodbye..."
+                    onAbortSetup
+                    exit $RETVAL
+                fi
+                # Installation OK, continue
+                makeItMine
+                logBeginAct "Setup DataSunrise..."
+                cd $DSROOT
+                FIRST_NODE=0
+                if [ ${currentDictionaryType} == "MSSQL" ]; then
+                    prepareMsDictionary
+                fi
+                resetDict
+                setDictionaryLicense
+                if [ "$RETVAL" == "93" ]; then
+                    FIRST_NODE=1
+                    logBeginAct "Setup First Node of DataSunrise..."
+                    resetAdminPassword
+                elif [ "$RETVAL" == "94" ]; then
+                    FIRST_NODE=0
+                    logBeginAct "Setup Next Node of DataSunrise..."
+                else
+                    logEndAct "Setup Dictionary Error! Goodbye..."
+                    onAbortSetup
+                    exit $RETVAL
+                fi
+                if [ ${currentAuditType} == "MSSQL" ]; then
+                    prepareMsAudit
+                fi
+                resetAudit
+                if [ "$RETVAL" != "96" ]; then
+                    logEndAct "Setup Audit Error! Goodbye..."
+                    onAbortSetup
+                    exit $RETVAL
+                fi
+                setInstallationType
+                makeItMine
+                cleanLogs
+                service datasunrise start
+                sleep 20
+                if [ "$FIRST_NODE" == "1" ]; then
+                    setupProxy
+                    setupCleaningTask
+                else
+                    processSetupOrCopy
+                    runCleaningTask
+                fi
+                logEndAct "Create/copy proxy done - $?"
+                if [ "$FIRST_NODE" == "1" ]; then
+                    if [ -n "$BackupS3BucketName" ]; then
+                        setupBackupParams
+                    fi
+                    if [ -n "$AWSCLIProxy" ]; then
+                        setupHttpProxy
+                    fi
+                    setupAdditionals
+                fi
+                setupBackupActions
+                service datasunrise stop
+                makeItMine
+                cleanLogs
+                configureKeepAlive
+                configureJVM
+                setcapAppFirewallCore
+                service datasunrise start
+                CFS_END_TS=$(date +%s.%N)
+                CFS_ELLAPSED=$(echo "$CFS_END_TS - $CFS_BGN_TS" | bc)
+                logEndAct "Setup DataSunrise finished in $CFS_ELLAPSED sec."
+                uploadSetupLogs
+                setupCWLogUploading
+                logBeginAct "Fixfiles..."
+                fixfiles -FB onboot
+                logEndAct "Fixfiles done - $?"
+                logBeginAct "SElinux summary:"
+                ausearch -m AVC -ts recent
+                logEndAct "SElinux summary done - $?"
+                echo -ne "*/1 * * * * root $DSCLOUDDIR/scriptcron.sh ${LFName} ${ASGName} ${SecretId}\n" | tee --append /etc/crontab
+              - {
+                    SecretId: !Join ['',[!Ref DeploymentName, '-secret-admin-password']],
+                    LFName: !Join ['', [!Ref DeploymentName, '-hook']],
+                    ASGName: !Join [ '', [!Ref DeploymentName, '-asg']],
+                    DSCloudRoot: !FindInMap [Consts, V1, DSCloudRoot],
+                    DSRoot: !FindInMap [Consts, V1, DSRoot],
+                    currentAuditType: !Ref AuditType,
+                    currentDictionaryType: !Ref DictionaryType,
+                    timeZone: !Ref TimeZone
+                }
   DSAutoScalingGroup:
     Type: 'AWS::AutoScaling::AutoScalingGroup'
     DependsOn:
-      - DSLaunchConf
+      - DSLaunchTemp
       - DSLoadBalancer
     Properties:
       AutoScalingGroupName: !Join [ '', [!Ref DeploymentName, '-asg']]
-      LaunchConfigurationName: !Ref DSLaunchConf
+      LaunchTemplate:
+        LaunchTemplateId: !Ref DSLaunchTemp
+        Version: !GetAtt DSLaunchTemp.LatestVersionNumber
       TargetGroupARNs:
         - !Ref DSWebUITargetGroup
         - !Ref DSTDBTargetGroup
