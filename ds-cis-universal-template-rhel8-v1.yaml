@@ -469,6 +469,10 @@ Parameters:
       - db.m6i.2xlarge
       - db.m6i.4xlarge
       - db.m6i.8xlarge
+      - db.m6i.12xlarge
+      - db.m6i.16xlarge
+      - db.m6i.24xlarge
+      - db.m6i.32xlarge
       - db.r5.large
       - db.r5.xlarge
       - db.r5.2xlarge
@@ -1358,6 +1362,9 @@ Resources:
                   - 'ec2:DescribeInstances'
                   - 'aws-marketplace:MeterUsage'
                   - 'autoscaling:DescribeScalingActivities'
+                  - 'autoscaling:DescribeAutoScalingGroups'
+                  - 'elasticloadbalancing:DescribeTargetGroups'
+                  - 'elasticloadbalancing:DescribeLoadBalancers'
                 Resource: '*'
               - Effect: Allow
                 Action:
