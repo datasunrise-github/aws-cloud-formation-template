@@ -2246,7 +2246,7 @@ Resources:
                         DICTIONARY_PORT="$HA_DBPORT" \
                         DICTIONARY_DB_NAME="$HA_DBNAME" \
                         DICTIONARY_LOGIN="$HA_DBUSER" \
-                        DICTIONARY_PASS="$HA_DBPASSWD" \
+                        DICTIONARY_AWS_SECRET="$CFDEPLOYMENTNAME-secret-config-password" \
                         FIREWALL_SERVER_NAME="$DS_SERVER" \
                         FIREWALL_SERVER_HOST="$DS_HOST_PRIVIP" \
                         FIREWALL_SERVER_BACKEND_PORT=11000 \
@@ -2266,7 +2266,8 @@ Resources:
                         AuditDatabasePort="$HA_AUPORT" \
                         AuditDatabaseName="$HA_AUNAME" \
                         AuditLogin="$HA_AUUSER" \
-                        AuditPassword="$HA_AUPASSWD"
+                        AuditPasswordVaultType=2 \
+                        AuditAWSSecretID="$CFDEPLOYMENTNAME-secret-config-password"
                     RETVAL=$?
                     logEndAct "Reset DS Audit to $HA_AUHOST:$HA_AUPORT result - $RETVAL"
                 }
@@ -2295,7 +2296,8 @@ Resources:
                             -password "$TRG_DBPASSWD" \
                             -proxyHost "$DS_HOST_PRIVIP" \
                             -proxyPort "$TRG_DBPORT" \
-                            -savePassword ds \
+                            -awsSmID "$CFDEPLOYMENTNAME-secret-tdb-password"
+                            -savePassword awssm \
                             $ENCRYPTION_ARGS
                         RETVAL=$?
                         if [ $RETVAL == 0 ]; then
