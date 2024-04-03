@@ -4,16 +4,38 @@ Mappings:
   RegionMap:
     eu-central-1:
       AMI: ami-0824770908e1e2a2b
-    eu-north-1:
-      AMI: ami-026967c2b875651a0
+    ap-south-2:
+      AMI: ami-084843c6aebccf17e
     ap-south-1:
       AMI: ami-0fb82b70294fea4dd
+    eu-south-1:
+      AMI: ami-0292a0167a391c204
+    eu-south-2:
+      AMI: ami-046d714a238e09095
+    me-central-1:
+      AMI: ami-0e8552bcd287627c4
+    il-central-1:
+      AMI: ami-08fddcd1f14b2220e
+    ca-central-1:
+      AMI: ami-03a358cb8a9d161ea
+    eu-central-2:
+      AMI: ami-0ef4082a809666b96
+    us-west-1:
+      AMI: ami-0c0c75ccc90dab776
+    us-west-2:
+      AMI: ami-08e1102e9ec20d1bd
+    af-south-1:
+      AMI: ami-0e3ae3a6f9d8f1460
+    eu-north-1:
+      AMI: ami-026967c2b875651a0
     eu-west-3:
       AMI: ami-04c9f88a834f710de
     eu-west-2:
       AMI: ami-0377299ce2d456065
     eu-west-1:
       AMI: ami-0e5f6b35e03f5e650
+    ap-northeast-3:
+      AMI: ami-0de7a790062bba215
     ap-northeast-2:
       AMI: ami-067d284f850f6dfcb
     me-south-1:
@@ -22,22 +44,22 @@ Mappings:
       AMI: ami-0af8db122b1a9e72c
     sa-east-1:
       AMI: ami-08f5b67beecf513d5
-    ca-central-1:
-      AMI: ami-03a358cb8a9d161ea
     ap-east-1:
       AMI: ami-0b7e56acabb62cc70
+    ca-west-1:
+      AMI: ami-0278840bf1ecf4299
     ap-southeast-1:
       AMI: ami-0e01ad0a72fd91b7c
     ap-southeast-2:
       AMI: ami-09fb0b3b6d6f910da
+    ap-southeast-3:
+      AMI: ami-082bfe42779180e4e
+    ap-southeast-4:
+      AMI: ami-0b0d2b1f33ee5fded
     us-east-1:
       AMI: ami-0f0970c5274a9c671
     us-east-2:
       AMI: ami-0d7c1c9df65694996
-    us-west-1:
-      AMI: ami-0c0c75ccc90dab776
-    us-west-2:
-      AMI: ami-08e1102e9ec20d1bd
   Consts:
     V1:
       AMIProductCode: e4d3d3b6266ocd12it8gny7gh
