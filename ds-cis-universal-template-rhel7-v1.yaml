@@ -3,51 +3,51 @@ Description: DataSunrise Database and Data Security - Network Load Balancer univ
 Mappings:
   RegionMap:
     eu-central-1:
-      AMI: ami-0ba0eeb061394e567
+      AMI: ami-054c2d6641282024d
     ap-south-2:
-      AMI: ami-026d19ffc69db662d
+      AMI: ami-0c04b9492ca435728
     ap-south-1:
-      AMI: ami-085364ef4028e88f3
+      AMI: ami-0c502d21707921f93
     eu-south-1:
-      AMI: ami-019cb9ce3d2bbb16c
+      AMI: ami-0109a74b1e200c7ca
     eu-south-2:
-      AMI: ami-0bd47bf37c376c0ac
+      AMI: ami-0831d3a6f38ef7ccf
     me-central-1:
-      AMI: ami-0bf55608877229bea
+      AMI: ami-00f1945842673ec66
     il-central-1:
-      AMI: ami-0e45efc64664de951
+      AMI: ami-0eab67c85cfd6d11e
     ca-central-1:
-      AMI: ami-091f5d3a5d34eeb7c
+      AMI: ami-07d119f1d4210a86a
     eu-central-2:
-      AMI: ami-068df53ca1c2a5bd6
+      AMI: ami-0163746e0f7af78ab
     us-west-1:
-      AMI: ami-0e69c9180c9973c19
+      AMI: ami-0540d33c58a913a06
     us-west-2:
-      AMI: ami-077af72935ad7a1e2
+      AMI: ami-035e3c18c3913e8bc
     af-south-1:
-      AMI: ami-0689fe61089ab6560
+      AMI: ami-0907a1353b02fa165
     eu-north-1:
-      AMI: ami-04208fa1721b03d15
+      AMI: ami-0d419eae6e26b5ec6
     eu-west-3:
-      AMI: ami-023e7e4b9fbc2bb9d
+      AMI: ami-03bad48a762466ed2
     eu-west-2:
-      AMI: ami-03a15377e9eef8628
+      AMI: ami-04cfba2a81b283003
     eu-west-1:
-      AMI: ami-0a606186eae3d30c6
+      AMI: ami-03285ea13de260573
     ap-northeast-3:
-      AMI: ami-080425a00d380fd5f
+      AMI: ami-03e1eec8a72ba344b
     ap-northeast-2:
-      AMI: ami-0bf8bed7b477ea9fc
+      AMI: ami-0b92d1c48ec2d225b
     me-south-1:
-      AMI: ami-0d3657b22ce92091f
+      AMI: ami-05f11069aa54ef19c
     ap-northeast-1:
-      AMI: ami-031ea1ba84027fe4a
+      AMI: ami-06f2c4bf97b03cba9
     sa-east-1:
-      AMI: ami-0228ef28161c8dc81
+      AMI: ami-08fbf86526903ed34
     ap-east-1:
-      AMI: ami-009a358911f318594
+      AMI: ami-0becd9dc24c05baa8
     ca-west-1:
-      AMI: ami-0fb4b700832caff46
+      AMI: ami-0d69c0e94156b3250
     ap-southeast-1:
       AMI: ami-040384e90780d942b
     ap-southeast-2:
