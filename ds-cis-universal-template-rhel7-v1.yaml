@@ -1654,7 +1654,7 @@ Resources:
       Protocol: TCP
       Port: !Ref TDBPort
       VpcId: !Ref VPC
-      HealthCheckPath: !Join ['', ['/healthcheck/instance?inst_name=DBInstance-', !Ref DeploymentName]]
+      HealthCheckPath: !Join ['', ['/healthcheck/proxy_port?port=', !Ref TDBPort]]
       HealthCheckPort: '11000'
       HealthCheckProtocol: HTTPS
   DSWebUIListener:
