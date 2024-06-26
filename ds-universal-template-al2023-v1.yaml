@@ -2554,17 +2554,30 @@ Resources:
                     logEndAct "Preparing dictonary database for MSSQL result - $RETVAL"
                 }
                 setcapAppFirewallCore() {
-                    logBeginAct "Executing setcap on $DSROOT/AppFirewallCore"
+                    logBeginAct "Executing setcap as required"
                     DS_VER=$($DSROOT/AppBackendService VERSION)
                     DS_VER_MAJ=${!DS_VER:0:1}
                     DS_VER_MIN=${!DS_VER:2:1}
                     if [ $DS_VER_MAJ -ge 9 ]; then
-                      log "No setcap required for $DS_VER"
-                    elif  [ $DS_VER_MAJ -eq 8 ] && [ $DS_VER_MIN -ge 1 ]; then
-                      log "No setcap required for $DS_VER"
+                        log "No setcap required for $DS_VER"
+                    elif [ $DS_VER_MAJ -eq 8 ] && [ $DS_VER_MIN -ge 1 ]; then
+                        log "No setcap required for $DS_VER"
                     else
-                      log "Executing setcap"
-                      setcap 'cap_net_raw,cap_net_admin=eip cap_net_bind_service=ep' $DSROOT/AppFirewallCore
+                        log "Checking specific applications for setcap requirements"
+                        if [[ -x "$DSROOT/AppFirewallCore_Sniffer" ]]; then
+                            log "Setting cap_net_raw and cap_net_admin for AppFirewallCore_Sniffer"
+                            setcap 'cap_net_raw,cap_net_admin=eip' $DSROOT/AppFirewallCore_Sniffer
+                        fi
+                        
+                        if [[ -x "$DSROOT/PortBinder" ]]; then
+                            log "Setting cap_net_bind_service for PortBinder"
+                            setcap 'cap_net_bind_service=ep' $DSROOT/PortBinder
+                        fi
+                        
+                        if [[ -x "$DSROOT/FreePortChecker" ]]; then
+                            log "Setting cap_net_bind_service for FreePortChecker"
+                            setcap 'cap_net_bind_service=ep' $DSROOT/FreePortChecker
+                        fi
                     fi
                     logEndAct "Execution finished. Exit code is - $?"
                 }
