@@ -267,6 +267,7 @@ Parameters:
       - Asia/Hong_Kong
       - Asia/Jerusalem
       - Asia/Kuwait
+      - Asia/Kolkata
       - Asia/Qatar
       - Asia/Seoul
       - Asia/Shanghai
@@ -623,7 +624,7 @@ Parameters:
     AllowedValues:
       - 'true'
       - 'false'
-    Default: 'false'
+    Default: 'true'
   AWSCLIProxy:
     Type: String
     Description: >-
@@ -652,7 +653,7 @@ Parameters:
     Description: >-
       The instance type that allocates the computational, network, and memory
       capacity required by planned workload of this instance.
-    Default: m5.2xlarge
+    Default: m7i.2xlarge
     AllowedValues:
       - t3.medium
       - t3.large
@@ -1801,7 +1802,7 @@ Resources:
                 content: !Sub |
                     #!/bin/bash
                     adGetInfo() {
-                        logBeginAct "Getting AD info for $AWS_DS_ID..."
+                        logBeginAct "Getting AD info for AWS DirectoryService $AWS_DS_ID..."
                         AWS_DS_DESC=`aws ds describe-directories --directory-id $AWS_DS_ID`
                         if [ -z "$AWS_DS_DESC" ]; then
                             echo "Error - aws ds describe-directories FAILED - $?"
@@ -1854,10 +1855,10 @@ Resources:
                     EOF
                         mv -f $RESOLV_CONF $RESOLV_CONF_BAK
                         mv /tmp/resolv.conf $RESOLV_CONF
-                        if [ ! -z "$AWS_DS_DNS1" ]; then
+                        if [ -n "$AWS_DS_DNS1" ]; then
                             echo -ne "nameserver $AWS_DS_DNS1\n" | tee -a $RESOLV_CONF
                         fi
-                        if [ ! -z "$AWS_DS_DNS2" ]; then
+                        if [ -n "$AWS_DS_DNS2" ]; then
                             echo -ne "nameserver $AWS_DS_DNS2\n" | tee -a $RESOLV_CONF
                         fi
                         cat $RESOLV_CONF
@@ -1865,10 +1866,11 @@ Resources:
                         logEndAct "$RESOLV_CONF"
                     }
                     adJoin() {
+                        log "Getting AD Joiner User password"
                         local AWS_DS_PASSWD=`aws --region $EC2REGION secretsmanager get-secret-value --secret-id $CFDEPLOYMENTNAME-secret-ad-password --query SecretString --output text`
                         logBeginAct "Attempting to join to AD..."
                         bash -c "echo $AWS_DS_PASSWD | realm join --verbose -U $AWS_DS_LOGIN $AWS_DS_NAME"
-                        logEndAct "Joint to AD $?"
+                        logEndAct "Joined to AD $?"
                     }
                 mode: '000755'
                 owner: ec2-user
@@ -1904,13 +1906,13 @@ Resources:
               content: !Sub |
                 #!/bin/bash
                 uploadSetupLogs() {
-                    if [ ! -z "$BackupS3BucketName" ]; then
+                    if [ -n "$BackupS3BucketName" ]; then
                         aws s3 cp $CLOUD_INIT_LOG s3://$BackupS3BucketName/Deploying/$INST_ID/
                     fi
                 }
                 uploadAllSetupLogs() {
                     uploadSetupLogs
-                    if [ ! -z "$BackupS3BucketName" ]; then
+                    if [ -n "$BackupS3BucketName" ]; then
                         aws s3 sync $DSROOT/logs s3://$BackupS3BucketName/Deploying/$INST_ID/
                     fi
                 }
@@ -1930,7 +1932,7 @@ Resources:
                     echo "$jtmp" | python3 -c "import sys, json; jnp=json.load(sys.stdin); print(json.dumps(jnp, indent=4))"
                 }
                 setupCloudWatch() {
-                    if [ ! -z "$AlarmSNSTopic" ]; then
+                    if [ -n "$AlarmSNSTopic" ]; then
                         logBeginAct "Setup service monitoring and alarm..."
                         aws cloudwatch put-metric-alarm \
                             --alarm-name "$AlarmName" \
@@ -1959,7 +1961,7 @@ Resources:
                 #!/bin/bash
                 DSCLOUDDIR=/opt/ds-cloud
                 PROXY_CONF=
-                if [ ! -z "$PROXY_CONF" ]; then
+                if [ -n "$PROXY_CONF" ]; then
                     export HTTP_PROXY="$PROXY_CONF"
                     export HTTPS_PROXY="$PROXY_CONF"
                 fi
@@ -2000,7 +2002,7 @@ Resources:
                 #!/bin/bash
                 DSCLOUDDIR=/opt/ds-cloud
                 PROXY_CONF=
-                if [ ! -z "$PROXY_CONF" ]; then
+                if [ -n "$PROXY_CONF" ]; then
                     export HTTP_PROXY="$PROXY_CONF"
                     export HTTPS_PROXY="$PROXY_CONF"
                 fi
@@ -2153,7 +2155,6 @@ Resources:
                     DS_INSTALLER=installer.rpm
                     if [ -z "$DSDISTURL" ]; then
                         log " Distribution URL is empty. Using stock installer."
-                        ls -la
                     else
                         DS_INSTALLER=DSCustomBuild.rpm
                         if [[ "${!DSDISTURL:0:2}" == "S3" || "${!DSDISTURL:0:2}" == "s3" ]]; then
@@ -2284,7 +2285,6 @@ Resources:
                     logEndAct "Reset DS Audit to $HA_AUHOST:$HA_AUPORT result - $RETVAL"
                 }
                 setupProxy() {
-                    local TRG_DBPASSWD="`aws --region $EC2REGION secretsmanager get-secret-value --secret-id $CFDEPLOYMENTNAME-secret-tdb-password --query SecretString --output text`"
                     logBeginAct "Setup DS proxy $TRG_INSTNAME for $TDBHost:$TDBPort"
                     loginAsAdmin
                     if [ $RETVAL == 0 ]; then
@@ -2423,6 +2423,10 @@ Resources:
                         $DSROOT/cmdline/executecommand.sh changeParameter -name AuditPartitionEnable -value 1
                         log "Setup AuditPartitionInterval for HA config..."
                         $DSROOT/cmdline/executecommand.sh changeParameter -name AuditPartitionInterval -value 1
+                        log "Setup GenerateCrashDump..."
+                        $DSROOT/cmdline/executecommand.sh changeParameter -name GenerateCrashDump -value 1
+                        log "Setup GenerateCrashDumpBackend..."
+                        $DSROOT/cmdline/executecommand.sh changeParameter -name GenerateCrashDumpBackend -value 1
                         RETVAL=$?
                     fi
                     logEndAct "Setup additional parameters result - $RETVAL"
@@ -2471,7 +2475,7 @@ Resources:
                     echo "net.ipv4.tcp_keepalive_time = 60" | tee -a /etc/sysctl.conf
                     echo "net.ipv4.tcp_keepalive_intvl = 10" | tee -a /etc/sysctl.conf
                     echo "net.ipv4.tcp_keepalive_probes = 6" | tee -a /etc/sysctl.conf
-                    sysctl -p -q 
+                    sysctl -p -q
                 }
                 createRDSKeyGroup() {
                     logBeginAct "Preparing RDS SSLKeyGroup..."
@@ -2534,6 +2538,7 @@ Resources:
                     echo "CREATE DATABASE $HA_AUNAME;" > createdatabaseaudit.sql
                     echo "GO" >> createdatabaseaudit.sql
                     ./sqlcmd* -S $HA_AUHOST,$HA_AUPORT -U $HA_AUUSER -P $HA_AUPASSWD -i createdatabaseaudit.sql
+                    RETVAL=$?
                     rm createdatabaseaudit.sql
                     cd /opt/datasunrise 
                     logEndAct "Preparing audit database for MSSQL result - $RETVAL" 
@@ -2549,6 +2554,7 @@ Resources:
                     echo "ALTER DATABASE $HA_DBNAME SET AUTO_CLOSE OFF;" >> createdatabasedictionary.sql
                     echo "GO" >> createdatabasedictionary.sql
                     ./sqlcmd* -S $HA_DBHOST,$HA_DBPORT -U $HA_DBUSER -P $HA_DBPASSWD -i createdatabasedictionary.sql
+                    RETVAL=$?
                     rm createdatabasedictionary.sql
                     cd /opt/datasunrise
                     logEndAct "Preparing dictonary database for MSSQL result - $RETVAL"
@@ -2667,45 +2673,45 @@ Resources:
                     type systemd_logind_t;
                     type useradd_t;
                     type groupadd_t;
-                	type bin_t;
-                	type cgroup_t;
-                	type cluster_port_t;
-                	type commplex_main_port_t;
-                	type ephemeral_port_t;
-                	type fs_t;
-                	type gear_port_t;
-                	type gluster_port_t;
-                	type hplip_port_t;
-                	type http_port_t;
-                	type keystone_port_t;
-                	type ldap_port_t;
-                	type mongod_port_t;
-                	type mssql_port_t;
-                	type mysqld_port_t;
-                	type oracle_port_t;
-                	type postgresql_port_t;
-                	type proc_t;
-                	type proc_net_t;
-                	type random_device_t;
-                	type shell_exec_t;
-                	type smtp_port_t;
-                	type sysctl_net_t;
-                	type sysfs_t;
-                	type tmp_t;
-                	type tmpfs_t;
-                	type unreserved_port_t;
-                	type user_home_dir_t;
-                	type user_t;
-                	type usr_t;
+                    type bin_t;
+                    type cgroup_t;
+                    type cluster_port_t;
+                    type commplex_main_port_t;
+                    type ephemeral_port_t;
+                    type fs_t;
+                    type gear_port_t;
+                    type gluster_port_t;
+                    type hplip_port_t;
+                    type http_port_t;
+                    type keystone_port_t;
+                    type ldap_port_t;
+                    type mongod_port_t;
+                    type mssql_port_t;
+                    type mysqld_port_t;
+                    type oracle_port_t;
+                    type postgresql_port_t;
+                    type proc_t;
+                    type proc_net_t;
+                    type random_device_t;
+                    type shell_exec_t;
+                    type smtp_port_t;
+                    type sysctl_net_t;
+                    type sysfs_t;
+                    type tmp_t;
+                    type tmpfs_t;
+                    type unreserved_port_t;
+                    type user_home_dir_t;
+                    type user_t;
+                    type usr_t;
                     class dbus { send_msg };
-                	class chr_file { getattr open read };
-                	class dir { add_name create getattr open read remove_name rmdir search setattr write };
-                	class file { append create execute execute_no_trans getattr ioctl lock open read setattr unlink write };
-                	class filesystem getattr;
-                	class lnk_file read;
-                	class netlink_socket create;
-                	class packet_socket create;
-                	class tcp_socket { listen name_bind name_connect };
+                    class chr_file { getattr open read };
+                    class dir { add_name create getattr open read remove_name rmdir search setattr write };
+                    class file { append create execute execute_no_trans getattr ioctl lock open read setattr unlink write };
+                    class filesystem getattr;
+                    class lnk_file read;
+                    class netlink_socket create;
+                    class packet_socket create;
+                    class tcp_socket { listen name_bind name_connect };
                 }
                 ########################################
                 allow datasunrise_t self:capability { setgid setuid };
@@ -2812,9 +2818,9 @@ Resources:
           Name: !Ref DSNodeProfile
         Monitoring:
           Enabled: !If
-            - HasAlarm
-            - true
-            - false
+          - HasAlarm
+          - true
+          - false
         BlockDeviceMappings:
           - DeviceName: /dev/xvda
             Ebs:
@@ -2831,7 +2837,7 @@ Resources:
                 
                 echo "CloudFormation script has been started"
                 shopt -s extglob
-                yum update -y -q
+                sudo ACCEPT_EULA=Y yum update -y -q
                 yum install -y wget ipcalc
                 pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz              
                 CFS_BGN_TS=$(date +%s.%N)
@@ -2911,6 +2917,11 @@ Resources:
                 FIRST_NODE=0
                 if [ ${currentDictionaryType} == "MSSQL" ]; then
                     prepareMsDictionary
+                    if [ "$RETVAL" != "0" ]; then
+                        logEndAct "Preparing MSSQL Dictionary Error! Goodbye..."
+                        onAbortSetup
+                        exit $RETVAL
+                    fi
                 fi
                 resetDict
                 setDictionaryLicense
@@ -2928,6 +2939,11 @@ Resources:
                 fi
                 if [ ${currentAuditType} == "MSSQL" ]; then
                     prepareMsAudit
+                    if [ "$RETVAL" != "0" ]; then
+                        logEndAct "Preparing MSSQL Audit Error! Goodbye..."
+                        onAbortSetup
+                        exit $RETVAL
+                    fi
                 fi
                 resetAudit
                 if [ "$RETVAL" != "96" ]; then
@@ -2964,6 +2980,13 @@ Resources:
                 configureKeepAlive
                 configureJVM
                 setcapAppFirewallCore
+                logBeginAct "Crash dumps configuration started"
+                echo AF_GENERATE_NATIVE_DUMPS=1 >> /etc/datasunrise.conf
+                echo "" >> /etc/sysctl.conf
+                echo "kernel.core_pattern=core-%e" | tee -a /etc/sysctl.conf
+                echo "kernel.core_uses_pid=0" | tee -a /etc/sysctl.conf
+                sysctl -p -q
+                logEndAct "Crash dumps configuration finished"
                 service datasunrise start
                 CFS_END_TS=$(date +%s.%N)
                 CFS_ELLAPSED=$(echo "$CFS_END_TS - $CFS_BGN_TS" | bc)
