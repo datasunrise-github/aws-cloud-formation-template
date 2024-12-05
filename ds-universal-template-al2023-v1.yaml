@@ -2480,7 +2480,7 @@ Resources:
                 createRDSKeyGroup() {
                     logBeginAct "Preparing RDS SSLKeyGroup..."
                     loginAsAdmin
-                    $DSROOT/cmdline/executecommand.sh addSslKeyGroup -ca $DSROOT/rds-combined-ca-bundle.pem -name RDSGroup
+                    $DSROOT/cmdline/executecommand.sh addSslKeyGroup -ca $DSROOT/aws-ca-certs.pem -name RDSGroup
                     logEndAct "RDS SSLKeyGroup created."
                 }
                 setupHttpProxy() {
