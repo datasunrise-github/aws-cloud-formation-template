@@ -1808,10 +1808,10 @@ Resources:
                         if [ -z "$AWS_DS_DESC" ]; then
                             echo "Error - aws ds describe-directories FAILED - $?"
                         else
-                            AWS_DS_NAME=`echo $AWS_DS_DESC | python -c "import sys, json; print json.load(sys.stdin)['DirectoryDescriptions'][0]['Name']"`
-                            AWS_DS_SNAME=`echo $AWS_DS_DESC | python -c "import sys, json; print json.load(sys.stdin)['DirectoryDescriptions'][0]['ShortName']"`
-                            AWS_DS_DNS1=`echo $AWS_DS_DESC | python -c "import sys, json; print json.load(sys.stdin)['DirectoryDescriptions'][0]['DnsIpAddrs'][0]"`
-                            AWS_DS_DNS2=`echo $AWS_DS_DESC | python -c "import sys, json; print json.load(sys.stdin)['DirectoryDescriptions'][0]['DnsIpAddrs'][1]"`
+                            AWS_DS_NAME=`echo $AWS_DS_DESC | python3 -c "import sys, json; print(json.load(sys.stdin)['DirectoryDescriptions'][0]['Name'])"`
+                            AWS_DS_SNAME=`echo $AWS_DS_DESC | python3 -c "import sys, json; print(json.load(sys.stdin)['DirectoryDescriptions'][0]['ShortName'])"`
+                            AWS_DS_DNS1=`echo $AWS_DS_DESC | python3 -c "import sys, json; print(json.load(sys.stdin)['DirectoryDescriptions'][0]['DnsIpAddrs'][0])"`
+                            AWS_DS_DNS2=`echo $AWS_DS_DESC | python3 -c "import sys, json; print(json.load(sys.stdin)['DirectoryDescriptions'][0]['DnsIpAddrs'][1])"`
                             log "AWS_DS_ID    - $AWS_DS_ID"
                             log "AWS_DS_NAME  - $AWS_DS_NAME"
                             log "AWS_DS_SNAME - $AWS_DS_SNAME"
@@ -1888,9 +1888,9 @@ Resources:
                     IAM_NOT_FOUND=`echo "$IAM_ROLE" | grep -i "not found"`
                     if [ -z "$IAM_NOT_FOUND" ]; then
                         IAM_CREDS=`curl -s "http://169.254.169.254/latest/meta-data/iam/security-credentials/$IAM_ROLE" -H "X-aws-ec2-metadata-token: $TOKEN"`
-                        export AWS_ACCESS_KEY_ID=`echo $IAM_CREDS | python -c "import sys, json; print json.load(sys.stdin)['AccessKeyId']"`
-                        export AWS_SECRET_ACCESS_KEY=`echo $IAM_CREDS | python -c "import sys, json; print json.load(sys.stdin)['SecretAccessKey']"`
-                        export AWS_SESSION_TOKEN=`echo $IAM_CREDS | python -c "import sys, json; print json.load(sys.stdin)['Token']"`
+                        export AWS_ACCESS_KEY_ID=`echo $IAM_CREDS | python3 -c "import sys, json; print(json.load(sys.stdin)['AccessKeyId'])"`
+                        export AWS_SECRET_ACCESS_KEY=`echo $IAM_CREDS | python3 -c "import sys, json; print(json.load(sys.stdin)['SecretAccessKey'])"`
+                        export AWS_SESSION_TOKEN=`echo $IAM_CREDS | python3 -c "import sys, json; print(json.load(sys.stdin)['Token'])"`
                         export AWS_SECURITY_TOKEN=$AWS_SESSION_TOKEN
                         EC2_AVAIL_ZONE=`curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone -H "X-aws-ec2-metadata-token: $TOKEN"`
                         EC2_REGION="`echo "$EC2_AVAIL_ZONE" | sed -e 's:\([0-9][0-9]*\)[a-z]*$:\1:'`"
@@ -1929,8 +1929,8 @@ Resources:
                     aws sts decode-authorization-message --encoded-message "$1"
                 }
                 stsDecodeMessageJSon() {
-                    local jtmp=`stsDecodeMessage $1 | python -c "import sys, json; jnp=json.load(sys.stdin)['DecodedMessage']; print jnp"`
-                    echo "$jtmp" | python -c "import sys, json; jnp=json.load(sys.stdin); print json.dumps(jnp, indent=4)"
+                    local jtmp=`stsDecodeMessage $1 | python3 -c "import sys, json; jnp=json.load(sys.stdin)['DecodedMessage']; print(jnp)"`
+                    echo "$jtmp" | python3 -c "import sys, json; jnp=json.load(sys.stdin); print(json.dumps(jnp, indent=4))"
                 }
                 setupCloudWatch() {
                     if [ -n "$AlarmSNSTopic" ]; then
@@ -2357,7 +2357,7 @@ Resources:
                   logBeginAct "Checking neigbour instances from my ASG..."
                   TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
                   INST_ID=`curl -s http://169.254.169.254/latest/meta-data/instance-id -H "X-aws-ec2-metadata-token: $TOKEN"`
-                  local neigbours=$(aws ec2 describe-instances --filters 'Name=tag:aws:autoscaling:groupName,Values=${ASGName}' | python -c "import sys,json; [sys.stdout.write(str(inst)) for instance in json.load(sys.stdin)['Reservations'] for inst in instance['Instances'] if inst['InstanceId'] != '$INST_ID']")
+                  local neigbours=$(aws ec2 describe-instances --filters 'Name=tag:aws:autoscaling:groupName,Values=${ASGName}' | python3 -c "import sys,json; [sys.stdout.write(str(inst)) for instance in json.load(sys.stdin)['Reservations'] for inst in instance['Instances'] if inst['InstanceId'] != '$INST_ID']")
                   if [[ -z $neigbours ]]; then
                     logEndAct "No neighbours found, returning 0"
                     return 0
@@ -2472,7 +2472,7 @@ Resources:
                     logBeginAct "Run node cleaning task..."
                     loginAsAdmin
                     if [ $RETVAL == 0 ]; then
-                        local EC2_CLEANING_TASK_ID=`$DSROOT/cmdline/executecommand.sh arbitrary -function getPeriodicTaskList -jsonContent "{taskTypes:[18]}" | python -c "import sys, json; print json.load(sys.stdin)['data'][1][0]"`
+                        local EC2_CLEANING_TASK_ID=`$DSROOT/cmdline/executecommand.sh arbitrary -function getPeriodicTaskList -jsonContent "{taskTypes:[18]}" | python3 -c "import sys, json; print(json.load(sys.stdin)['data'][1][0])"`
                         $DSROOT/cmdline/executecommand.sh arbitrary -function executePeriodicTaskManually -jsonContent "{id:$EC2_CLEANING_TASK_ID}"
                         RETVAL=$?
                     fi
@@ -2715,7 +2715,7 @@ Resources:
                     class dbus { send_msg };
                     class chr_file { getattr open read };
                     class dir { add_name create getattr open read remove_name rmdir search setattr write };
-                    class file { append create execute execute_no_trans getattr ioctl lock open read setattr unlink write };
+                    class file { append create execute execute_no_trans getattr ioctl lock open read setattr unlink write map };
                     class filesystem getattr;
                     class lnk_file read;
                     class netlink_socket create;
@@ -2773,6 +2773,9 @@ Resources:
                 allow datasunrise_t usr_t:file { execute execute_no_trans };
                 #============= datasunrise_t ==============
                 allow datasunrise_t self:netlink_netfilter_socket create;
+                allow datasunrise_t datasunrise_exec_t:file execute_no_trans;
+                allow datasunrise_t datasunrise_var_t:file map;
+                allow datasunrise_t datasunrise_var_t:lnk_file read;
                 #============= groupadd_t ==============
                 allow groupadd_t usr_t:fifo_file write;
                 #============= rngd_t ==============
@@ -2847,9 +2850,8 @@ Resources:
                 echo "CloudFormation script has been started"
                 shopt -s extglob
                 sudo ACCEPT_EULA=Y yum update -y -q
-                yum install -y wget python2 python3 python2-pip python3-pip bc
-                pip2 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
-                ln -s /usr/bin/python2 /usr/bin/python
+                yum install -y wget bc
+                pip3 install -qqq https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
                 
                 CFS_BGN_TS=$(date +%s.%N)
                 CFSTACKNAME=${AWS::StackName}
