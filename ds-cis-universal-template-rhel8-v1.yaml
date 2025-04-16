@@ -2860,7 +2860,7 @@ Resources:
                 DSROOT=${DSRoot}
                 DSCLOUDDIR=${DSCloudRoot}
                 mkdir -p $DSCLOUDDIR
-                /usr/bin/cfn-init -v --stack $CFSTACKNAME --resource DSLaunchTemp --configsets AWSLinux1 --region $EC2REGION
+                /usr/local/bin/cfn-init -v --stack $CFSTACKNAME --resource DSLaunchTemp --configsets AWSLinux1 --region $EC2REGION
                 mv /opt/cooked/* $DSCLOUDDIR/
                 rm -fR /opt/cooked
                 AWS_STACK_ID_ARN=${AWS::StackId}
