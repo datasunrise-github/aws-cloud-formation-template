@@ -62,7 +62,6 @@ Mappings:
       AMI: ami-0a4e0f7fd89eb68a7
   Consts:
     V1:
-      AMIProductCode: e4d3d3b6266ocd12it8gny7gh
       CARProductCode: 88q6e9h0zcpo4hpvxrxtlglgd
       DSCloudWatchEventSource: DataSunrise
       DSRoot: /opt/datasunrise
@@ -90,18 +89,18 @@ Mappings:
       AuditEnginePg: postgres
       AuditEngineMy: mysql
       AuditEngineMs: sqlserver-se
-      EngineVersionPg: '15'
+      EngineVersionPg: '17'
       EngineVersionMy: '8.0'
-      EngineVersionMs: '15.00'
+      EngineVersionMs: '16.00'
       AuditAuroraEnginePg: aurora-postgresql
       AuditAuroraEngineMy: aurora-mysql
-      AuditAuroraEngineVersionPg: '15'
+      AuditAuroraEngineVersionPg: '17'
       AuditAuroraEngineVersionMy: '8.0'
-      ParameterGroupFamilyPg: 'postgres15'
+      ParameterGroupFamilyPg: 'postgres17'
       ParameterGroupFamilyMy: 'MySQL8.0'
-      DictionaryParameterGroupFamilyMs: 'sqlserver-se-15.0'
-      AuditParameterGroupFamilyMs: 'sqlserver-se-15.0'
-      ParameterGroupFamilyPgCluster: aurora-postgresql15
+      DictionaryParameterGroupFamilyMs: 'sqlserver-se-16.0'
+      AuditParameterGroupFamilyMs: 'sqlserver-se-16.0'
+      ParameterGroupFamilyPgCluster: aurora-postgresql17
       ParameterGroupFamilyMyCluster: aurora-mysql8.0
       PostgresLicenseModel: 'postgresql-license'
       MysqlLicenseModel: 'general-public-license'
@@ -1449,6 +1448,13 @@ Resources:
                   - 'cloudformation:DeleteStack'
                 Resource:
                   - !Join [ '', [ 'arn:aws:cloudformation:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':stack/', !Ref 'AWS::StackName' ] ]
+              - Effect: Allow
+                Action:
+                  - 'ses:SendEmail'
+                  - 'ses:SendRawEmail'
+                  - 'ses:GetSendQuota'
+                  - 'ses:GetSendStatistics'
+                Resource: '*'
   DSNodeProfile:
     Type: 'AWS::IAM::InstanceProfile'
     Properties:
@@ -1510,7 +1516,7 @@ Resources:
       DBSubnetGroupName: !Ref DSDBSubnetGrp
       DBParameterGroupName: !If [DictionaryPostgres, !Ref DSParameterGroupPostgres, !If [DictionaryMysql, !Ref DSParameterGroupMysql, !Ref DSParameterGroupMssqlDictionary]]
       StorageEncrypted: !If [DictionaryMssql, !Ref 'AWS::NoValue', 'True']
-      StorageType: gp2
+      StorageType: gp3
       LicenseModel: !If [DictionaryPostgres, !FindInMap [Consts, V1, PostgresLicenseModel], !If [DictionaryMysql, !FindInMap [Consts, V1, MysqlLicenseModel], !FindInMap [Consts, V1, MssqlLicenseModel]]]
       DeletionProtection: true
       PubliclyAccessible: false
@@ -1540,7 +1546,7 @@ Resources:
       DBSubnetGroupName: !Ref DSDBSubnetGrp
       DBParameterGroupName: !If [AuditPostgres, !Ref DSParameterGroupPostgres, !If [AuditMysql, !Ref DSParameterGroupMysql, !Ref DSParameterGroupMssqlAudit]]
       StorageEncrypted: 'True'
-      StorageType: gp2
+      StorageType: gp3
       MaxAllocatedStorage: !If [AuditMssql, 16384, 65536]
       LicenseModel: !If [AuditPostgres, !FindInMap [Consts, V1, PostgresLicenseModel], !If [AuditMysql, !FindInMap [Consts, V1, MysqlLicenseModel], !FindInMap [Consts, V1, MssqlLicenseModel]]]
       DeletionProtection: true
@@ -1734,7 +1740,6 @@ Resources:
                 AWS_DS_ID=${AWSADId}
                 AWS_DS_LOGIN=${AWSADLogin}
                 
-                AWS_AMI_PCODE=${AMIProductCode}
                 AWS_CAR_PCODE=${CARProductCode}
                
                 InitialAMinSize=${EC2Count}
@@ -1767,7 +1772,7 @@ Resources:
                 HA_DBNAME=${DBDictName}
                 HA_DBUSER=${DBUser}
 
-                # 0 - Sqlite, 1 - PgSQL, 2 - MySQL, 3 - Redshift, 4 - Aurora
+                # 0 - Sqlite, 1 - PgSQL, 2 - MySQL, 3 - Redshift, 4 - AuroraMySQL, 7 - AuroraPostgreSQL
                 HA_AUTYPE=${AuditInternalParameter}
                 HA_AUHOST=${DSAuditDBHost}
                 HA_AUPORT=${DSAuditDBPort}
@@ -1784,7 +1789,6 @@ Resources:
               - {
                   DSCloudRoot: !FindInMap [Consts, V1, DSCloudRoot],
                   DSRoot: !FindInMap [Consts, V1, DSRoot],
-                  AMIProductCode: !FindInMap [Consts, V1, AMIProductCode],
                   CARProductCode: !FindInMap [Consts, V1, CARProductCode],
                   DictionaryInternalParameter: !If [DictionaryPostgres, !FindInMap [Consts, V1, DictionaryInternalParameterPg], !If [DictionaryMysql, !FindInMap [Consts, V1, DictionaryInternalParameterMy], !FindInMap [Consts, V1, DictionaryInternalParameterMs]]],
                   AuditInternalParameter: !If [AuditPostgres, !FindInMap [Consts, V1, AuditInternalParameterPg], !If [AuditMysql, !FindInMap [Consts, V1, AuditInternalParameterMy], !If [AuditMssql, !FindInMap [Consts, V1, AuditInternalParameterMs], !If [AuditAuroraPostgres, !FindInMap [Consts, V1, AuditInternalParameterAuPg], !FindInMap [Consts, V1, AuditInternalParameterAuMy]]]]],
@@ -1882,7 +1886,7 @@ Resources:
                 INSTID=`curl -s http://169.254.169.254/latest/meta-data/instance-id -H "X-aws-ec2-metadata-token: $TOKEN"`
                 IAM_ROLE=`curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/ -H "X-aws-ec2-metadata-token: $TOKEN"`
                 if [ -z "$IAM_ROLE" ]; then
-                    echo "$INSTID: Security credentials for this instance is not found!"
+                    echo "$INSTID: Security credentials for this instance are not found!"
                 else
                     IAM_NOT_FOUND=`echo "$IAM_ROLE" | grep -i "not found"`
                     if [ -z "$IAM_NOT_FOUND" ]; then
@@ -1896,7 +1900,7 @@ Resources:
                         export AWS_DEFAULT_REGION=$EC2_REGION
                         echo "$INSTID: Using $IAM_ROLE credentials."
                     else
-                        echo "$INSTID: IAM role did not attached to this instance!"
+                        echo "$INSTID: IAM role is not attached to this instance!"
                     fi
                 fi
               mode: '000755'
@@ -1923,13 +1927,6 @@ Resources:
                         rm -fr /root/.aws
                         logEndAct "Setup CloudWatch Logs synchronization DONE"
                     fi
-                }
-                stsDecodeMessage() {
-                    aws sts decode-authorization-message --encoded-message "$1"
-                }
-                stsDecodeMessageJSon() {
-                    local jtmp=`stsDecodeMessage $1 | python3 -c "import sys, json; jnp=json.load(sys.stdin)['DecodedMessage']; print(jnp)"`
-                    echo "$jtmp" | python3 -c "import sys, json; jnp=json.load(sys.stdin); print(json.dumps(jnp, indent=4))"
                 }
                 setupCloudWatch() {
                     if [ -n "$AlarmSNSTopic" ]; then
@@ -2012,7 +2009,7 @@ Resources:
                     aws cloudwatch put-metric-data --metric-name "ServiceAlive" --namespace "DataSunrise" --value $1 --dimensions InstanceId=$INST_ID
                 }
                 source $DSCLOUDDIR/vm-creds.sh
-                STEXT=`service datasunrise status 2> /dev/null`
+                STEXT=`systemctl status datasunrise 2> /dev/null`
                 SSTATUS=$?
                 if [ $SSTATUS -ne 0 ]; then
                     echo $STEXT
@@ -2195,13 +2192,12 @@ Resources:
                     semanage port -a -t datasunrise_port_t -p tcp $TRG_DBPORT
                     log "Turning on DataSunrise service"
                     systemctl enable datasunrise
-                    log "Turn on DataSunrise daemon"
-                    chkconfig datasunrise on
-                    log "Setup $AF_GCNF..."
                     local AF_GCNF=/etc/datasunrise.conf
+                    log "Setup $AF_GCNF..."
                     local ORACLE_HOME=/usr/lib/oracle/21/client64/lib
                     echo "DS_SERVER_NAME_PREFIX=ds" | tee -a $AF_GCNF
-                    echo "AWS_PCODE=\"$AWS_AMI_PCODE\"" | tee -a $AF_GCNF
+                    echo "AF_INSTALLATION_TYPE=AWS" | tee -a $AF_GCNF
+                    echo "AWS_PCODE=\"$AWS_CAR_PCODE\"" | tee -a $AF_GCNF
                     echo "ORACLE_HOME=$ORACLE_HOME" | tee -a $AF_GCNF
                     log "DS configuration file $AF_GCNF"
                     cat $AF_GCNF
@@ -2232,13 +2228,6 @@ Resources:
               content: !Sub
               - |
                 #!/bin/bash
-                setInstallationType() {
-                    logBeginAct "Setting up Installation Type for AWS..."
-                    LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService \
-                        CHANGE_SETTINGS=1 InstallationType=1
-                    RETVAL=$?
-                    logEndAct "Setting up Installation Type for AWS result - $RETVAL"
-                }
                 resetAdminPassword() {
                     logBeginAct "Reset Admin Password..."
                     LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService \
@@ -2325,10 +2314,10 @@ Resources:
                 copyProxy()
                 {
                   logBeginAct "Starting copying proxies..."
-                  service datasunrise stop
+                  systemctl stop datasunrise
                   LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService COPY_PROXIES
                   LD_LIBRARY_PATH="$DSROOT":"$DSROOT/lib":$LD_LIBRARY_PATH AF_HOME="$AF_HOME" AF_CONFIG="$AF_HOME" $DSROOT/AppBackendService COPY_TRAILINGS
-                  service datasunrise start
+                  systemctl start datasunrise
                   logEndAct "Finished copying proxies"
                 }
                 checkInstanceExists() {
@@ -2427,6 +2416,8 @@ Resources:
                         $DSROOT/cmdline/executecommand.sh changeParameter -name GenerateCrashDump -value 1
                         log "Setup GenerateCrashDumpBackend..."
                         $DSROOT/cmdline/executecommand.sh changeParameter -name GenerateCrashDumpBackend -value 1
+                        log "Setup LoadBalancerHost..."
+                        $DSROOT/cmdline/executecommand.sh changeParameter -name LoadBalancerHost -value ${DSLoadBalancer.DNSName}
                         RETVAL=$?
                     fi
                     logEndAct "Setup additional parameters result - $RETVAL"
@@ -2447,7 +2438,7 @@ Resources:
                 onAbortSetup() {
                     uploadAllSetupLogs
                     makeItMine
-                    service datasunrise stop
+                    systemctl stop datasunrise
                 }
                 setupCleaningTask() {
                     logBeginAct "Set node cleaning task..."
@@ -2562,8 +2553,8 @@ Resources:
                 setcapAppFirewallCore() {
                     logBeginAct "Executing setcap as required"
                     DS_VER=$($DSROOT/AppBackendService VERSION)
-                    DS_VER_MAJ=${!DS_VER:0:1}
-                    DS_VER_MIN=${!DS_VER:2:1}
+                    DS_VER_MAJ=$(echo "$DS_VER" | cut -d. -f1)
+                    DS_VER_MIN=$(echo "$DS_VER" | cut -d. -f2)
                     if [ $DS_VER_MAJ -ge 9 ]; then
                         log "No setcap required for $DS_VER"
                     elif [ $DS_VER_MAJ -eq 8 ] && [ $DS_VER_MIN -ge 1 ]; then
@@ -2668,7 +2659,9 @@ Resources:
                 corenet_port(datasunrise_port_t)
                 #permissive datasunrise_t;
                 require {
+                    type datasunrise_port_t;
                     type cloud_init_t;
+                    type cloud_init_tmp_t;
                     type rngd_t;
                     type systemd_logind_t;
                     type useradd_t;
@@ -2718,7 +2711,7 @@ Resources:
                 allow datasunrise_t self:fifo_file rw_fifo_file_perms;
                 allow datasunrise_t self:netlink_socket create;
                 allow datasunrise_t self:packet_socket create;
-                allow datasunrise_t self:process { fork signal_perms };
+                allow datasunrise_t self:process { fork signal_perms execmem};
                 allow datasunrise_t self:tcp_socket { listen accept } ;
                 allow datasunrise_t self:unix_stream_socket create_stream_socket_perms;
                 ####################
@@ -2727,9 +2720,11 @@ Resources:
                 allow datasunrise_t cgroup_t:file { getattr open read };
                 allow datasunrise_t cluster_port_t:tcp_socket name_connect;
                 allow datasunrise_t commplex_main_port_t :tcp_socket { name_bind name_connect };
+                allow datasunrise_t datasunrise_var_t:lnk_file read;
                 allow datasunrise_t datasunrise_var_t:dir { add_name create getattr open read remove_name rmdir search write };
-                allow datasunrise_t datasunrise_var_t:file { append create execute getattr lock open read unlink write };
+                allow datasunrise_t datasunrise_var_t:file { append create execute execute_no_trans getattr lock open read unlink write setattr map };
                 allow datasunrise_t datasunrise_port_t:tcp_socket { name_connect name_bind };
+                allow datasunrise_t datasunrise_exec_t:file execute_no_trans;
                 allow datasunrise_t ephemeral_port_t:tcp_socket name_connect;
                 allow datasunrise_t fs_t:filesystem getattr;
                 allow datasunrise_t gear_port_t:tcp_socket name_connect;
@@ -2745,6 +2740,7 @@ Resources:
                 allow datasunrise_t postgresql_port_t:tcp_socket { name_bind name_connect };
                 allow datasunrise_t proc_t:file { getattr open read };
                 allow datasunrise_t proc_net_t:file { getattr open read };
+                allow datasunrise_t proc_net_t:lnk_file read;
                 allow datasunrise_t random_device_t:chr_file { getattr open read };
                 allow datasunrise_t shell_exec_t:file execute;
                 allow datasunrise_t smtp_port_t:tcp_socket name_connect;
@@ -2754,19 +2750,17 @@ Resources:
                 allow datasunrise_t sysfs_t:file { getattr open read };
                 allow datasunrise_t sysfs_t:lnk_file read;
                 allow datasunrise_t tmp_t:dir { add_name create read remove_name write };
-                allow datasunrise_t tmp_t:file { create unlink write };
+                allow datasunrise_t tmp_t:file { create unlink write open };
                 allow datasunrise_t tmpfs_t:dir { add_name remove_name write };
                 allow datasunrise_t tmpfs_t:file { create open read unlink write };
                 allow datasunrise_t tmpfs_t:filesystem getattr;
                 allow datasunrise_t unreserved_port_t:tcp_socket { name_bind name_connect };
-                allow datasunrise_t user_home_dir_t:dir { add_name create getattr search setattr write };
-                allow datasunrise_t user_home_dir_t:file { append create getattr ioctl lock open read setattr write };
+                allow datasunrise_t user_home_dir_t:dir { add_name create getattr search setattr write remove_name };
+                allow datasunrise_t user_home_dir_t:file { append create getattr ioctl lock open read setattr write rename };
                 allow datasunrise_t usr_t:file { execute execute_no_trans };
                 #============= datasunrise_t ==============
                 allow datasunrise_t self:netlink_netfilter_socket create;
-                allow datasunrise_t datasunrise_exec_t:file execute_no_trans;
-                allow datasunrise_t datasunrise_var_t:file map;
-                allow datasunrise_t datasunrise_var_t:lnk_file read;
+                allow datasunrise_t cloud_init_tmp_t:file open;
                 #============= groupadd_t ==============
                 allow groupadd_t usr_t:fifo_file write;
                 #============= rngd_t ==============
@@ -2775,9 +2769,6 @@ Resources:
                 allow systemd_logind_t cloud_init_t:dbus send_msg;
                 #============= useradd_t ==============
                 allow useradd_t usr_t:fifo_file write;
-                allow datasunrise_t self:process execmem;
-                allow datasunrise_t user_home_dir_t:dir remove_name;
-                allow datasunrise_t user_home_dir_t:file rename;
                 ####################
                 domain_use_interactive_fds(datasunrise_t)
                 files_read_etc_files(datasunrise_t)
@@ -2792,7 +2783,7 @@ Resources:
               content: !Sub |
                 #!/bin/bash
                 DSCLOUDDIR=/opt/ds-cloud
-                DSROOT=/opt/datasunrise                
+                DSROOT=/opt/datasunrise
                 LFNAME="$1"
                 ASGNAME="$2"
                 SECRETID="$3"
@@ -2829,6 +2820,7 @@ Resources:
             Ebs:
               DeleteOnTermination: true
               VolumeSize: 20
+              VolumeType: gp3
         MetadataOptions:
           HttpEndpoint: enabled
           HttpTokens: required
@@ -2954,10 +2946,9 @@ Resources:
                     onAbortSetup
                     exit $RETVAL
                 fi
-                setInstallationType
                 makeItMine
                 cleanLogs
-                service datasunrise start
+                systemctl start datasunrise
                 sleep 20
                 if [ "$FIRST_NODE" == "1" ]; then
                     setupProxy
@@ -2977,7 +2968,7 @@ Resources:
                     setupAdditionals
                 fi
                 setupBackupActions
-                service datasunrise stop
+                systemctl stop datasunrise
                 makeItMine
                 cleanLogs
                 configureKeepAlive
@@ -2990,10 +2981,10 @@ Resources:
                 echo "kernel.core_uses_pid=0" | tee -a /etc/sysctl.conf
                 sysctl -p -q
                 logEndAct "Crash dumps configuration finished"
-                service datasunrise start
+                systemctl start datasunrise
                 CFS_END_TS=$(date +%s.%N)
-                CFS_ELLAPSED=$(echo "$CFS_END_TS - $CFS_BGN_TS" | bc)
-                logEndAct "Setup DataSunrise finished in $CFS_ELLAPSED sec."
+                CFS_ELAPSED=$(echo "$CFS_END_TS - $CFS_BGN_TS" | bc)
+                logEndAct "Setup DataSunrise finished in $CFS_ELAPSED sec."
                 uploadSetupLogs
                 setupCWLogUploading
                 logBeginAct "Fixfiles..."
