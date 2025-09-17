@@ -2174,6 +2174,33 @@ Resources:
                     fi
                     chmod +x $DS_INSTALLER
                     log "Using binary: '$DS_INSTALLER'"
+                    
+                    # Wait for RPM lock with timeout (max 30 seconds)
+                    log "Checking for RPM lock availability..."
+                    max_wait=30
+                    waited=0
+                    # Wait for any dnf/yum/rpm processes to complete
+                    while pgrep -x "dnf|yum|rpm" >/dev/null 2>&1; do
+                        if [ $waited -ge $max_wait ]; then
+                            log "ERROR: Package management processes still running after $max_wait seconds"
+                            # Force cleanup as last resort
+                            pkill -9 dnf 2>/dev/null || true
+                            pkill -9 yum 2>/dev/null || true
+                            pkill -9 rpm 2>/dev/null || true
+                            rm -f /var/lib/rpm/.rpm.lock
+                            sleep 2
+                            break
+                        fi
+                        log "Waiting for package management to complete... ($waited/$max_wait)"
+                        sleep 1
+                        waited=$((waited + 1))
+                    done
+                    # Additional check for lock file
+                    if [ -f /var/lib/rpm/.rpm.lock ]; then
+                        log "Removing stale RPM lock file"
+                        rm -f /var/lib/rpm/.rpm.lock
+                    fi
+                    
                     local DS_INSTALLER_CMD="rpm -ihv ./$DS_INSTALLER"
                     $DS_INSTALLER_CMD
                     RETVAL=$?
