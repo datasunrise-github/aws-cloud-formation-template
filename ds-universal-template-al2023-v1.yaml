@@ -121,6 +121,9 @@ Parameters:
   TimeZone:
     Type: String
     Default: America/Los_Angeles
+    Description: >-
+      Time zone for the EC2 instance and RDS databases (PostgreSQL and MySQL only).
+      Note: MSSQL RDS does not support timezone configuration via parameter groups.
     AllowedValues:
       - Africa/Lagos
       - Africa/Mogadishu
@@ -1588,6 +1591,7 @@ Resources:
     Properties:
       Parameters:
         rds.force_ssl: '1'
+        timezone: !Ref TimeZone
       Description: DSParameterGroup
       Family: !FindInMap [Consts, V1, ParameterGroupFamilyPg]
   DSParameterGroupMysql:
@@ -1599,6 +1603,7 @@ Resources:
         collation_server: utf8mb4_bin
         character_set_database: utf8mb4
         log_bin_trust_function_creators: '1'
+        time_zone: !Ref TimeZone
       Description: DSParameterGroup
       Family: !FindInMap [Consts, V1, ParameterGroupFamilyMy]
   DSParameterGroupMssqlAudit:
@@ -1623,6 +1628,7 @@ Resources:
     Properties:
       Parameters:
         rds.force_ssl: '1'
+        timezone: !Ref TimeZone
       Description: DSParameterGroup
       Family: !FindInMap [Consts, V1, ParameterGroupFamilyPgCluster]
   DSParameterGroupMysqlCluster:
@@ -1634,6 +1640,7 @@ Resources:
         collation_server: utf8mb4_bin
         character_set_database: utf8mb4
         log_bin_trust_function_creators: '1'
+        time_zone: !Ref TimeZone
       Description: DSParameterGroup
       Family: !FindInMap [Consts, V1, ParameterGroupFamilyMyCluster]
   DSLoadBalancer:
