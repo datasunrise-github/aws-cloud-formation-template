@@ -449,7 +449,6 @@ Parameters:
     Description: The DataSunrise license key.
   DBUser:
     Type: String
-    NoEcho: 'true'
     Description: >-
       The database administrator account username. Must begin with a letter and
       contain only alphanumeric characters.
@@ -856,6 +855,16 @@ Parameters:
       that you select at least two subnets.
     ConstraintDescription: must be the subnet Id of an existing subnet in mentioned VPC.
     AllowedPattern: .+
+Rules:
+  MssqlDictionaryInstanceClassRule:
+    RuleCondition: !Equals [!Ref DictionaryType, 'MSSQL']
+    Assertions:
+      - Assert:
+          !Not
+            - Fn::Contains:
+                - [db.t2.micro, db.t2.small, db.t2.medium, db.t2.large, db.t2.xlarge, db.t2.2xlarge, db.t3.micro, db.t3.small, db.t3.medium, db.t3.large, db.t3.xlarge, db.t3.2xlarge, db.t4g.micro, db.t4g.small, db.t4g.medium, db.t4g.large, db.t4g.xlarge, db.t4g.2xlarge]
+                - !Ref DictionaryDBClass
+        AssertDescription: "SQL Server SE does not support burstable instance types (t2, t3, t4g). Please select m5, m6i, or r5 instance class for Dictionary database."
 Conditions:
   HasS3Name: !Not [!Equals ['', !Ref BackupS3BucketName]]
   HasNoAlarm: !Equals ['', !Ref AlarmEmail]
@@ -1550,7 +1559,7 @@ Resources:
       DBParameterGroupName: !If [AuditPostgres, !Ref DSParameterGroupPostgres, !If [AuditMysql, !Ref DSParameterGroupMysql, !Ref DSParameterGroupMssqlAudit]]
       StorageEncrypted: 'True'
       StorageType: gp3
-      MaxAllocatedStorage: !If [AuditMssql, 16384, 65536]
+      MaxAllocatedStorage: !If [AuditMssql, 6000, 65536]
       LicenseModel: !If [AuditPostgres, !FindInMap [Consts, V1, PostgresLicenseModel], !If [AuditMysql, !FindInMap [Consts, V1, MysqlLicenseModel], !FindInMap [Consts, V1, MssqlLicenseModel]]]
       DeletionProtection: true
       PubliclyAccessible: false
