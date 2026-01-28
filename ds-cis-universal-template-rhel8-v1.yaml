@@ -2577,7 +2577,7 @@ Resources:
                     logBeginAct "Audit is MSSQL, preparing audit database..."
                     local HA_AUPASSWD="`aws --region $EC2REGION secretsmanager get-secret-value --secret-id $CFDEPLOYMENTNAME-secret-config-password --query SecretString --output text`"
                     logBeginAct "Preparing mssql database..."
-                    cd /opt/mssql-tools/bin/
+                    cd /opt/mssql-tools18/bin/
                     echo "CREATE DATABASE $HA_AUNAME;" > createdatabaseaudit.sql
                     echo "GO" >> createdatabaseaudit.sql
                     ./sqlcmd* -S $HA_AUHOST,$HA_AUPORT -U $HA_AUUSER -P $HA_AUPASSWD -i createdatabaseaudit.sql
@@ -2590,7 +2590,7 @@ Resources:
                     logBeginAct "Dictionary is MSSQL, preparing dictionary database..."
                     local HA_DBPASSWD="`aws --region $EC2REGION secretsmanager get-secret-value --secret-id $CFDEPLOYMENTNAME-secret-config-password --query SecretString --output text`"
                     logBeginAct "Preparing mssql database..."
-                    cd /opt/mssql-tools/bin/
+                    cd /opt/mssql-tools18/bin/
                     echo "CREATE DATABASE $HA_DBNAME;" > createdatabasedictionary.sql
                     echo "GO" >> createdatabasedictionary.sql
                     #ONLY FOR MSSQL EXPRESS EDITION
