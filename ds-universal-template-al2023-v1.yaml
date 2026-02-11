@@ -1680,6 +1680,9 @@ Resources:
       HealthCheckPath: !Join ['', ['/healthcheck/proxy_port?port=', !Ref TDBPort]]
       HealthCheckPort: '11000'
       HealthCheckProtocol: HTTPS
+      TargetGroupAttributes:
+        - Key: proxy_protocol_v2.enabled
+          Value: 'true'
   DSWebUIListener:
     Type: 'AWS::ElasticLoadBalancingV2::Listener'
     DependsOn:
@@ -2461,6 +2464,10 @@ Resources:
                         $DSROOT/cmdline/executecommand.sh changeParameter -name GenerateCrashDumpBackend -value 1
                         log "Setup LoadBalancerHost..."
                         $DSROOT/cmdline/executecommand.sh changeParameter -name LoadBalancerHost -value ${DSLoadBalancer.DNSName}
+                        log "Setup RedirectOnPublic..."
+                        $DSROOT/cmdline/executecommand.sh changeParameter -name RedirectOnPublic -value 1
+                        log "Setup PublicHostname..."
+                        $DSROOT/cmdline/executecommand.sh changeParameter -name PublicHostname -value ${DSLoadBalancer.DNSName}
                         RETVAL=$?
                     fi
                     logEndAct "Setup additional parameters result - $RETVAL"
