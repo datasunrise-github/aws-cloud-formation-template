@@ -38,8 +38,6 @@ Mappings:
       AMI: ami-03565861ed0722def
     ap-northeast-2:
       AMI: ami-08162c7a7ba8a9567
-    me-south-1:
-      AMI: ami-07319d7808e6c95e2
     ap-northeast-1:
       AMI: ami-01b672c0acf738db0
     sa-east-1:
