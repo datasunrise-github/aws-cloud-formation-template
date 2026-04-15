@@ -3,61 +3,61 @@ Description: DataSunrise Database and Data Security - Network Load Balancer univ
 Mappings:
   RegionMap:
     eu-central-1:
-      AMI: ami-0887ab5a3b3390b61
+      AMI: ami-0da7ac20d4c76d4f2
     ap-south-2:
-      AMI: ami-0fe2f39ff8811b557
+      AMI: ami-0279d3f180486a7f4
     ap-south-1:
-      AMI: ami-0a7f78150f5d18edd
+      AMI: ami-03b646946a823971d
     eu-south-1:
-      AMI: ami-0233488c127077504
+      AMI: ami-03cc3098f881a99bc
     eu-south-2:
-      AMI: ami-014dd404044570429
+      AMI: ami-0dcf104590630a542
     me-central-1:
-      AMI: ami-0af28ea046b749b2c
+      AMI: ami-0ecf52aee75a83086
     il-central-1:
-      AMI: ami-041f012e97e603a6d
+      AMI: ami-00e973aeab2f551e4
     ca-central-1:
-      AMI: ami-076549c5966924143
+      AMI: ami-020194ff3c11e5ba0
     eu-central-2:
-      AMI: ami-023661660abc0d98a
+      AMI: ami-0e632f8c069ad9a4a
     us-west-1:
-      AMI: ami-09f66b18c21ede94f
+      AMI: ami-0c89fa5a63777ad60
     us-west-2:
-      AMI: ami-0a5c9a125626c536a
+      AMI: ami-0b40e3a4f87258a4c
     af-south-1:
-      AMI: ami-033d54d0b4dd22bcf
+      AMI: ami-025d7407295f214d8
     eu-north-1:
-      AMI: ami-0ac3782143abb7ab0
+      AMI: ami-0bc6f7452dfe8dd0d
     eu-west-3:
-      AMI: ami-04c81073de5661686
+      AMI: ami-08eec4e40dfad6e85
     eu-west-2:
-      AMI: ami-04faf4b3759755c2c
+      AMI: ami-08eab32e3199bd3ed
     eu-west-1:
-      AMI: ami-06b0c45d93b31a744
+      AMI: ami-04b2729de904291ea
     ap-northeast-3:
-      AMI: ami-09d0a81a6cc1c6970
+      AMI: ami-0eb25467ddb87df47
     ap-northeast-2:
-      AMI: ami-0703c0e47825bc9b4
+      AMI: ami-07b3395cd909ebb7c
     ap-northeast-1:
-      AMI: ami-0bdb4e534b1b9b12d
+      AMI: ami-04c6419aa055b0261
     sa-east-1:
-      AMI: ami-00377078ab66866f8
+      AMI: ami-0f5c7f5520865108a
     ap-east-1:
-      AMI: ami-0c774c51d0cdcf2b9
+      AMI: ami-09ac5f27020c341d2
     ca-west-1:
-      AMI: ami-0e613f3e1bfcaa70a
+      AMI: ami-00aa4d746a99f3a38
     ap-southeast-1:
-      AMI: ami-099574a2945c60e6f
+      AMI: ami-01082268f8b7dc6c0
     ap-southeast-2:
-      AMI: ami-0886883bc9fac1644
+      AMI: ami-020b6ed640287075f
     ap-southeast-3:
-      AMI: ami-062b330614b54a24f
+      AMI: ami-04a5fd91777c52210
     ap-southeast-4:
-      AMI: ami-0972f880f0e555769
+      AMI: ami-0385328d76bb6f447
     us-east-1:
-      AMI: ami-0a6775d01f1b76ed3
+      AMI: ami-048a8c9df71fca0d9
     us-east-2:
-      AMI: ami-003dba2aed5913417
+      AMI: ami-02ded1ce36527bd46
   Consts:
     V1:
       CARProductCode: 88q6e9h0zcpo4hpvxrxtlglgd
@@ -2475,6 +2475,8 @@ Resources:
                         $DSROOT/cmdline/executecommand.sh changeParameter -name RedirectOnPublic -value 1
                         log "Setup PublicHostname..."
                         $DSROOT/cmdline/executecommand.sh changeParameter -name PublicHostname -value ${DSLoadBalancer.DNSName}
+                        log "Enable Proxy Protocol v2 for NLB client IP preservation..."
+                        $DSROOT/cmdline/executecommand.sh changeParameter -name ProxyProtocolV2Enabled -value 1
                         RETVAL=$?
                     fi
                     logEndAct "Setup additional parameters result - $RETVAL"
