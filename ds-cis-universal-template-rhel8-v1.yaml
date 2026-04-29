@@ -3,61 +3,61 @@ Description: DataSunrise Database and Data Security - Network Load Balancer univ
 Mappings:
   RegionMap:
     eu-central-1:
-      AMI: ami-07bb6645cf39528af
+      AMI: ami-05f2f8ccf960ae7d4
     ap-south-2:
-      AMI: ami-00746612c23e5fa93
+      AMI: ami-0bc48a5e664e155e1
     ap-south-1:
-      AMI: ami-099a6f4bedb536d94
+      AMI: ami-04f04b1e5be192047
     eu-south-1:
-      AMI: ami-0a9bc845c720279c7
+      AMI: ami-09d824180fe46ca53
     eu-south-2:
-      AMI: ami-03f0ae1d1d2a5e129
+      AMI: ami-0b0357d53138afd83
     me-central-1:
-      AMI: ami-069304afdad51f20a
+      AMI: ami-0d1a606e6a20399be
     il-central-1:
-      AMI: ami-0312f3dd418457b13
+      AMI: ami-0a51393ea973f6165
     ca-central-1:
-      AMI: ami-0ddea2790981aba89
+      AMI: ami-0bcf8c9b861c20406
     eu-central-2:
-      AMI: ami-05e1b74ab1f0d225e
+      AMI: ami-022a96065b6693b19
     us-west-1:
-      AMI: ami-0233fb45e35ad3726
+      AMI: ami-0d837b07055cc3c27
     us-west-2:
-      AMI: ami-0196e6fbde32fc22d
+      AMI: ami-051f2fe505ca1f8a5
     af-south-1:
-      AMI: ami-0e0ff15ece59a0c77
+      AMI: ami-0608027e36e585037
     eu-north-1:
-      AMI: ami-0900cf64825037fa2
+      AMI: ami-00728767d8d9096f8
     eu-west-3:
-      AMI: ami-0a6bea0b6484fd93f
+      AMI: ami-035950892a2d2257c
     eu-west-2:
-      AMI: ami-0df5ae466001a3831
+      AMI: ami-0c414b8850943082e
     eu-west-1:
-      AMI: ami-03323594c9a22af50
+      AMI: ami-0f4b9bc6b08539a8e
     ap-northeast-3:
-      AMI: ami-0df9930e69a33091b
+      AMI: ami-0406cef1877aac435
     ap-northeast-2:
-      AMI: ami-0e58348f65a35631d
+      AMI: ami-0a4625cfbd3f87970
     ap-northeast-1:
-      AMI: ami-0ccc9307761422cfb
+      AMI: ami-06c4fbecc75899781
     sa-east-1:
-      AMI: ami-012a76a5aa91a5c27
+      AMI: ami-0879bed2b8baec662
     ap-east-1:
-      AMI: ami-064920636bd1f0a3c
+      AMI: ami-097217a0c5014f31b
     ca-west-1:
-      AMI: ami-0e877b64af87363e9
+      AMI: ami-0b6292ff14cd607ff
     ap-southeast-1:
-      AMI: ami-014ed1be0f1e6c1e4
+      AMI: ami-06adac4b8e3c3dad1
     ap-southeast-2:
-      AMI: ami-004292c73ed2a064b
+      AMI: ami-05d549458320a32a9
     ap-southeast-3:
-      AMI: ami-04d309258d0c6d381
+      AMI: ami-0051976a9b638e733
     ap-southeast-4:
-      AMI: ami-0ad058eb52e519bd6
+      AMI: ami-071c3e9016d08b307
     us-east-1:
-      AMI: ami-0c0bc08749c3b2f36
+      AMI: ami-00fc1d10d09861e46
     us-east-2:
-      AMI: ami-037a263ef1deacbcd
+      AMI: ami-085c1a1b17319b26f
   Consts:
     V1:
       CARProductCode: 88q6e9h0zcpo4hpvxrxtlglgd
@@ -103,6 +103,100 @@ Mappings:
       PostgresLicenseModel: 'postgresql-license'
       MysqlLicenseModel: 'general-public-license'
       MssqlLicenseModel: 'license-included'
+  TimezoneMap:
+    Africa:
+      Cairo: Egypt Standard Time
+      Casablanca: Greenwich Standard Time
+      Harare: South Africa Standard Time
+      Monrovia: Greenwich Standard Time
+      Nairobi: E. Africa Standard Time
+      Tripoli: South Africa Standard Time
+      Windhoek: Namibia Standard Time
+    America:
+      Araguaina: SA Eastern Standard Time
+      Asuncion: Central Brazilian Standard Time
+      Bogota: SA Pacific Standard Time
+      Caracas: Venezuela Standard Time
+      Chihuahua: Mountain Standard Time (Mexico)
+      Cuiaba: Central Brazilian Standard Time
+      Denver: Mountain Standard Time
+      Fortaleza: SA Eastern Standard Time
+      Guatemala: Central America Standard Time
+      Halifax: Atlantic Standard Time
+      Manaus: SA Western Standard Time
+      Matamoros: Central Standard Time
+      Monterrey: Central Standard Time (Mexico)
+      Montevideo: SA Eastern Standard Time
+      Phoenix: US Mountain Standard Time
+      Santiago: Pacific SA Standard Time
+      Tijuana: Pacific Standard Time
+    Asia:
+      Amman: Jordan Standard Time
+      Ashgabat: West Asia Standard Time
+      Baghdad: Arabian Standard Time
+      Baku: Azerbaijan Standard Time
+      Bangkok: SE Asia Standard Time
+      Beirut: Middle East Standard Time
+      Calcutta: India Standard Time
+      Damascus: Middle East Standard Time
+      Dhaka: Central Asia Standard Time
+      Irkutsk: North Asia East Standard Time
+      Jerusalem: Israel Standard Time
+      Kabul: Afghanistan Standard Time
+      Karachi: Pakistan Standard Time
+      Kathmandu: Nepal Standard Time
+      Krasnoyarsk: North Asia Standard Time
+      Magadan: Central Pacific Standard Time
+      Muscat: Arabian Standard Time
+      Novosibirsk: N. Central Asia Standard Time
+      Riyadh: Arabian Standard Time
+      Seoul: Korea Standard Time
+      Shanghai: China Standard Time
+      Singapore: Singapore Standard Time
+      Taipei: Taipei Standard Time
+      Tehran: Iran Standard Time
+      Tokyo: Tokyo Standard Time
+      Ulaanbaatar: North Asia East Standard Time
+      Vladivostok: Vladivostok Standard Time
+      Yakutsk: Yakutsk Standard Time
+      Yerevan: Caucasus Standard Time
+    Atlantic:
+      Azores: Cape Verde Standard Time
+    Australia:
+      Adelaide: AUS Eastern Standard Time
+      Brisbane: E. Australia Standard Time
+      Darwin: AUS Eastern Standard Time
+      Hobart: Tasmania Standard Time
+      Perth: W. Australia Standard Time
+      Sydney: AUS Eastern Standard Time
+    Brazil:
+      East: E. South America Standard Time
+    Canada:
+      Newfoundland: Newfoundland Standard Time
+      Saskatchewan: Canada Central Standard Time
+      Yukon: Pacific Standard Time
+    Europe:
+      Amsterdam: W. Europe Standard Time
+      Athens: GTB Standard Time
+      Dublin: GMT Standard Time
+      Helsinki: FLE Standard Time
+      Istanbul: Turkey Standard Time
+      Kaliningrad: E. Europe Standard Time
+      Moscow: Russian Standard Time
+      Paris: Romance Standard Time
+      Prague: Central Europe Standard Time
+      Sarajevo: Central European Standard Time
+    Pacific:
+      Auckland: New Zealand Standard Time
+      Fiji: Fiji Standard Time
+      Guam: West Pacific Standard Time
+      Honolulu: Hawaiian Standard Time
+      Samoa: Samoa Standard Time
+    US:
+      Alaska: Alaskan Standard Time
+      Central: Central Standard Time
+      Eastern: Eastern Standard Time
+      Pacific: Pacific Standard Time
 Parameters:
   DirectoryServiceId:
     Description: Prefered AWS AD Id. Must belong mentioned VPC.
@@ -118,282 +212,98 @@ Parameters:
     Type: String
   TimeZone:
     Type: String
-    Default: America/Los_Angeles
+    Default: US/Pacific
     Description: >-
-      Time zone for the EC2 instance and RDS databases (PostgreSQL and MySQL only).
-      Note: MSSQL RDS does not support timezone configuration via parameter groups.
+      Time zone for the EC2 instance and RDS databases.
+      For MSSQL RDS, the timezone is automatically mapped to Windows format.
     AllowedValues:
-      - Africa/Lagos
-      - Africa/Mogadishu
+      - Africa/Cairo
+      - Africa/Casablanca
+      - Africa/Harare
       - Africa/Monrovia
       - Africa/Nairobi
       - Africa/Tripoli
-      - Africa/Tunis
-      - America/Anchorage
-      - America/Argentina/Buenos_Aires
-      - America/Argentina/San_Juan
-      - America/Argentina/San_Luis
-      - America/Aruba
+      - Africa/Windhoek
+      - America/Araguaina
       - America/Asuncion
-      - America/Atikokan
-      - America/Bahia
-      - America/Bahia_Banderas
-      - America/Barbados
-      - America/Belem
-      - America/Belize
-      - America/Blanc-Sablon
-      - America/Boa_Vista
       - America/Bogota
-      - America/Boise
-      - America/Cambridge_Bay
-      - America/Campo_Grande
-      - America/Cancun
+      - America/Buenos_Aires
       - America/Caracas
-      - America/Cayenne
-      - America/Cayman
-      - America/Chicago
       - America/Chihuahua
-      - America/Costa_Rica
-      - America/Creston
       - America/Cuiaba
-      - America/Curacao
-      - America/Danmarkshavn
-      - America/Dawson
-      - America/Dawson_Creek
       - America/Denver
-      - America/Detroit
-      - America/Dominica
-      - America/Edmonton
-      - America/Eirunepe
-      - America/El_Salvador
-      - America/Fort_Nelson
       - America/Fortaleza
-      - America/Glace_Bay
-      - America/Goose_Bay
-      - America/Grand_Turk
-      - America/Grenada
-      - America/Guadeloupe
       - America/Guatemala
-      - America/Guayaquil
-      - America/Guyana
       - America/Halifax
-      - America/Havana
-      - America/Hermosillo
-      - America/Indiana/Indianapolis
-      - America/Indiana/Knox
-      - America/Indiana/Marengo
-      - America/Indiana/Petersburg
-      - America/Indiana/Tell_City
-      - America/Indiana/Vevay
-      - America/Indiana/Vincennes
-      - America/Indiana/Winamac
-      - America/Inuvik
-      - America/Iqaluit
-      - America/Jamaica
-      - America/Juneau
-      - America/Kentucky/Louisville
-      - America/Kentucky/Monticello
-      - America/Kralendijk
-      - America/La_Paz
-      - America/Lima
-      - America/Los_Angeles
-      - America/Lower_Princes
-      - America/Maceio
-      - America/Managua
       - America/Manaus
-      - America/Marigot
-      - America/Martinique
       - America/Matamoros
-      - America/Mazatlan
-      - America/Menominee
-      - America/Merida
-      - America/Metlakatla
-      - America/Mexico_City
-      - America/Miquelon
-      - America/Moncton
       - America/Monterrey
       - America/Montevideo
-      - America/Montserrat
-      - America/Nassau
-      - America/New_York
-      - America/Nipigon
-      - America/Nome
-      - America/Noronha
-      - America/North_Dakota/Beulah
-      - America/North_Dakota/Center
-      - America/North_Dakota/New_Salem
-      - America/Nuuk
-      - America/Ojinaga
-      - America/Panama
-      - America/Pangnirtung
-      - America/Paramaribo
       - America/Phoenix
-      - America/Port-au-Prince
-      - America/Port_of_Spain
-      - America/Porto_Velho
-      - America/Puerto_Rico
-      - America/Punta_Arenas
-      - America/Rainy_River
-      - America/Rankin_Inlet
-      - America/Recife
-      - America/Regina
-      - America/Resolute
-      - America/Rio_Branco
-      - America/Santarem
       - America/Santiago
-      - America/Santo_Domingo
-      - America/Sao_Paulo
-      - America/Scoresbysund
-      - America/Sitka
-      - America/St_Barthelemy
-      - America/St_Johns
-      - America/St_Kitts
-      - America/St_Lucia
-      - America/St_Thomas
-      - America/St_Vincent
-      - America/Swift_Current
-      - America/Tegucigalpa
-      - America/Thule
-      - America/Thunder_Bay
       - America/Tijuana
-      - America/Toronto
-      - America/Tortola
-      - America/Vancouver
-      - America/Whitehorse
-      - America/Winnipeg
-      - America/Yakutat
-      - America/Yellowknife
-      - Asia/Dubai
-      - Asia/Hong_Kong
+      - Asia/Amman
+      - Asia/Ashgabat
+      - Asia/Baghdad
+      - Asia/Baku
+      - Asia/Bangkok
+      - Asia/Beirut
+      - Asia/Calcutta
+      - Asia/Damascus
+      - Asia/Dhaka
+      - Asia/Irkutsk
       - Asia/Jerusalem
-      - Asia/Kuwait
-      - Asia/Kolkata
-      - Asia/Qatar
+      - Asia/Kabul
+      - Asia/Karachi
+      - Asia/Kathmandu
+      - Asia/Krasnoyarsk
+      - Asia/Magadan
+      - Asia/Muscat
+      - Asia/Novosibirsk
+      - Asia/Riyadh
       - Asia/Seoul
       - Asia/Shanghai
       - Asia/Singapore
+      - Asia/Taipei
+      - Asia/Tehran
       - Asia/Tokyo
+      - Asia/Ulaanbaatar
+      - Asia/Vladivostok
+      - Asia/Yakutsk
+      - Asia/Yerevan
       - Atlantic/Azores
-      - Atlantic/Bermuda
-      - Atlantic/Canary
-      - Atlantic/Cape_Verde
-      - Atlantic/Faroe
-      - Atlantic/Madeira
-      - Atlantic/Reykjavik
-      - Atlantic/South_Georgia
-      - Atlantic/St_Helena
-      - Atlantic/Stanley
       - Australia/Adelaide
       - Australia/Brisbane
-      - Australia/Broken_Hill
-      - Australia/Currie
       - Australia/Darwin
-      - Australia/Eucla
       - Australia/Hobart
-      - Australia/Lindeman
-      - Australia/Lord_Howe
-      - Australia/Melbourne
       - Australia/Perth
       - Australia/Sydney
+      - Brazil/East
+      - Canada/Newfoundland
+      - Canada/Saskatchewan
+      - Canada/Yukon
       - Europe/Amsterdam
-      - Europe/Andorra
       - Europe/Athens
-      - Europe/Belgrade
-      - Europe/Berlin
-      - Europe/Bratislava
-      - Europe/Brussels
-      - Europe/Bucharest
-      - Europe/Budapest
-      - Europe/Busingen
-      - Europe/Chisinau
-      - Europe/Copenhagen
       - Europe/Dublin
-      - Europe/Gibraltar
-      - Europe/Guernsey
       - Europe/Helsinki
-      - Europe/Isle_of_Man
       - Europe/Istanbul
-      - Europe/Jersey
-      - Europe/Kiev
-      - Europe/Lisbon
-      - Europe/Ljubljana
-      - Europe/London
-      - Europe/Luxembourg
-      - Europe/Madrid
-      - Europe/Malta
-      - Europe/Mariehamn
-      - Europe/Minsk
-      - Europe/Monaco
+      - Europe/Kaliningrad
       - Europe/Moscow
-      - Europe/Oslo
       - Europe/Paris
-      - Europe/Podgorica
       - Europe/Prague
-      - Europe/Riga
-      - Europe/Rome
-      - Europe/San_Marino
-      - Europe/Skopje
-      - Europe/Sofia
-      - Europe/Stockholm
-      - Europe/Tallinn
-      - Europe/Tirane
-      - Europe/Vaduz
-      - Europe/Vatican
-      - Europe/Vienna
-      - Europe/Vilnius
-      - Europe/Warsaw
-      - Europe/Zurich
-      - Indian/Antananarivo
-      - Indian/Chagos
-      - Indian/Christmas
-      - Indian/Cocos
-      - Indian/Comoro
-      - Indian/Kerguelen
-      - Indian/Mahe
-      - Indian/Maldives
-      - Indian/Mauritius
-      - Indian/Mayotte
-      - Indian/Reunion
-      - Pacific/Apia
+      - Europe/Sarajevo
       - Pacific/Auckland
-      - Pacific/Bougainville
-      - Pacific/Chatham
-      - Pacific/Chuuk
-      - Pacific/Easter
-      - Pacific/Efate
-      - Pacific/Enderbury
-      - Pacific/Fakaofo
       - Pacific/Fiji
-      - Pacific/Funafuti
-      - Pacific/Galapagos
-      - Pacific/Gambier
-      - Pacific/Guadalcanal
       - Pacific/Guam
       - Pacific/Honolulu
-      - Pacific/Kiritimati
-      - Pacific/Kosrae
-      - Pacific/Kwajalein
-      - Pacific/Majuro
-      - Pacific/Marquesas
-      - Pacific/Midway
-      - Pacific/Nauru
-      - Pacific/Niue
-      - Pacific/Norfolk
-      - Pacific/Noumea
-      - Pacific/Pago_Pago
-      - Pacific/Palau
-      - Pacific/Pitcairn
-      - Pacific/Pohnpei
-      - Pacific/Port_Moresby
-      - Pacific/Rarotonga
-      - Pacific/Saipan
-      - Pacific/Tahiti
-      - Pacific/Tarawa
-      - Pacific/Tongatapu
-      - Pacific/Wake
-      - Pacific/Wallis
+      - Pacific/Samoa
+      - US/Alaska
+      - US/Central
+      - US/East-Indiana
+      - US/Eastern
+      - US/Pacific
       - UTC
-  DictionaryType: 
+  DictionaryType:
     Type: String
     Default: Postgres
     AllowedValues: 
@@ -473,6 +383,7 @@ Parameters:
     Description: >-
       The database instance class that allocates the computational, network, and
       memory capacity required by planned workload of this database instance.
+      Classes t3.small, t3.medium and t3.large are not available for MSSQL.
     Default: db.t3.medium
     AllowedValues:
       - db.t3.small
@@ -530,6 +441,7 @@ Parameters:
     Description: >-
       The database instance class that allocates the computational, network, and
       memory capacity required by planned workload of this database instance.
+      Classes t3.small, t3.medium and t3.large are not available for MSSQL.
     Default: 4xlarge
     AllowedValues:
       - xlarge
@@ -859,11 +771,33 @@ Rules:
     Assertions:
       - Assert:
           !Not
-            - Fn::Contains:
-                - [db.t2.micro, db.t2.small, db.t2.medium, db.t2.large, db.t2.xlarge, db.t2.2xlarge, db.t3.micro, db.t3.small, db.t3.medium, db.t3.large, db.t3.xlarge, db.t3.2xlarge, db.t4g.micro, db.t4g.small, db.t4g.medium, db.t4g.large, db.t4g.xlarge, db.t4g.2xlarge]
-                - !Ref DictionaryDBClass
+            - !Or
+              - !Or
+                - !Equals [!Ref DictionaryDBClass, db.t2.micro]
+                - !Equals [!Ref DictionaryDBClass, db.t2.small]
+                - !Equals [!Ref DictionaryDBClass, db.t2.medium]
+                - !Equals [!Ref DictionaryDBClass, db.t2.large]
+                - !Equals [!Ref DictionaryDBClass, db.t2.xlarge]
+                - !Equals [!Ref DictionaryDBClass, db.t2.2xlarge]
+              - !Or
+                - !Equals [!Ref DictionaryDBClass, db.t3.micro]
+                - !Equals [!Ref DictionaryDBClass, db.t3.small]
+                - !Equals [!Ref DictionaryDBClass, db.t3.medium]
+                - !Equals [!Ref DictionaryDBClass, db.t3.large]
+                - !Equals [!Ref DictionaryDBClass, db.t3.xlarge]
+                - !Equals [!Ref DictionaryDBClass, db.t3.2xlarge]
+              - !Or
+                - !Equals [!Ref DictionaryDBClass, db.t4g.micro]
+                - !Equals [!Ref DictionaryDBClass, db.t4g.small]
+                - !Equals [!Ref DictionaryDBClass, db.t4g.medium]
+                - !Equals [!Ref DictionaryDBClass, db.t4g.large]
+                - !Equals [!Ref DictionaryDBClass, db.t4g.xlarge]
+                - !Equals [!Ref DictionaryDBClass, db.t4g.2xlarge]
         AssertDescription: "SQL Server SE does not support burstable instance types (t2, t3, t4g). Please select m5, m6i, or r5 instance class for Dictionary database."
 Conditions:
+  IsUTC: !Equals [!Ref TimeZone, UTC]
+  IsBuenosAires: !Equals [!Ref TimeZone, 'America/Buenos_Aires']
+  IsEastIndiana: !Equals [!Ref TimeZone, 'US/East-Indiana']
   HasS3Name: !Not [!Equals ['', !Ref BackupS3BucketName]]
   HasNoAlarm: !Equals ['', !Ref AlarmEmail]
   HasAlarm: !Not [!Equals ['', !Ref AlarmEmail]]
@@ -879,7 +813,7 @@ Conditions:
   ParameterGroupPg: !Or [!Equals [!Ref DictionaryType, 'Postgres'],!Equals [ !Ref AuditType, 'Postgres']]
   ParameterGroupMy: !Or [!Equals [!Ref DictionaryType, 'MySQL'], !Equals [ !Ref AuditType, 'MySQL']]
   ParameterGroupMsDictionary: !Equals [!Ref DictionaryType, 'MSSQL']
-  ParameterGroupMsAudit: !Equals [!Ref DictionaryType, 'MSSQL']
+  ParameterGroupMsAudit: !Equals [!Ref AuditType, 'MSSQL']
   isAuroraCluster: !Or [!Equals [!Ref AuditType, 'AuroraPostgres'],!Equals [ !Ref AuditType, 'AuroraMySQL']]
   isNotAuroraCluster: !Not [!Or [!Equals [!Ref AuditType, 'AuroraPostgres'],!Equals [ !Ref AuditType, 'AuroraMySQL']]]
   s3link: !Equals [!Select [0, !Split ['//', !Ref DSDistributionUrl]], 's3:']
@@ -1525,6 +1459,22 @@ Resources:
         - !Ref DSConfigSG
       DBSubnetGroupName: !Ref DSDBSubnetGrp
       DBParameterGroupName: !If [DictionaryPostgres, !Ref DSParameterGroupPostgres, !If [DictionaryMysql, !Ref DSParameterGroupMysql, !Ref DSParameterGroupMssqlDictionary]]
+      Timezone: !If
+        - DictionaryMssql
+        - !If
+          - IsUTC
+          - UTC
+          - !If
+            - IsBuenosAires
+            - SA Eastern Standard Time
+            - !If
+              - IsEastIndiana
+              - US Eastern Standard Time
+              - !FindInMap
+                - TimezoneMap
+                - !Select [0, !Split ["/", !Ref TimeZone]]
+                - !Select [1, !Split ["/", !Ref TimeZone]]
+        - !Ref 'AWS::NoValue'
       StorageEncrypted: !If [DictionaryMssql, !Ref 'AWS::NoValue', 'True']
       StorageType: gp3
       LicenseModel: !If [DictionaryPostgres, !FindInMap [Consts, V1, PostgresLicenseModel], !If [DictionaryMysql, !FindInMap [Consts, V1, MysqlLicenseModel], !FindInMap [Consts, V1, MssqlLicenseModel]]]
@@ -1555,6 +1505,22 @@ Resources:
         - !Ref DSConfigSG
       DBSubnetGroupName: !Ref DSDBSubnetGrp
       DBParameterGroupName: !If [AuditPostgres, !Ref DSParameterGroupPostgres, !If [AuditMysql, !Ref DSParameterGroupMysql, !Ref DSParameterGroupMssqlAudit]]
+      Timezone: !If
+        - AuditMssql
+        - !If
+          - IsUTC
+          - UTC
+          - !If
+            - IsBuenosAires
+            - SA Eastern Standard Time
+            - !If
+              - IsEastIndiana
+              - US Eastern Standard Time
+              - !FindInMap
+                - TimezoneMap
+                - !Select [0, !Split ["/", !Ref TimeZone]]
+                - !Select [1, !Split ["/", !Ref TimeZone]]
+        - !Ref 'AWS::NoValue'
       StorageEncrypted: 'True'
       StorageType: gp3
       MaxAllocatedStorage: !If [AuditMssql, 6000, 65536]
@@ -2587,7 +2553,7 @@ Resources:
                     cd /opt/mssql-tools18/bin/
                     echo "CREATE DATABASE $HA_AUNAME;" > createdatabaseaudit.sql
                     echo "GO" >> createdatabaseaudit.sql
-                    ./sqlcmd* -S $HA_AUHOST,$HA_AUPORT -U $HA_AUUSER -P $HA_AUPASSWD -i createdatabaseaudit.sql
+                    ./sqlcmd* -S $HA_AUHOST,$HA_AUPORT -U $HA_AUUSER -P $HA_AUPASSWD -C -i createdatabaseaudit.sql
                     RETVAL=$?
                     rm createdatabaseaudit.sql
                     cd /opt/datasunrise 
@@ -2603,7 +2569,7 @@ Resources:
                     #ONLY FOR MSSQL EXPRESS EDITION
                     echo "ALTER DATABASE $HA_DBNAME SET AUTO_CLOSE OFF;" >> createdatabasedictionary.sql
                     echo "GO" >> createdatabasedictionary.sql
-                    ./sqlcmd* -S $HA_DBHOST,$HA_DBPORT -U $HA_DBUSER -P $HA_DBPASSWD -i createdatabasedictionary.sql
+                    ./sqlcmd* -S $HA_DBHOST,$HA_DBPORT -U $HA_DBUSER -P $HA_DBPASSWD -C -i createdatabasedictionary.sql
                     RETVAL=$?
                     rm createdatabasedictionary.sql
                     cd /opt/datasunrise
