@@ -103,100 +103,6 @@ Mappings:
       PostgresLicenseModel: 'postgresql-license'
       MysqlLicenseModel: 'general-public-license'
       MssqlLicenseModel: 'license-included'
-  TimezoneMap:
-    Africa:
-      Cairo: Egypt Standard Time
-      Casablanca: Greenwich Standard Time
-      Harare: South Africa Standard Time
-      Monrovia: Greenwich Standard Time
-      Nairobi: E. Africa Standard Time
-      Tripoli: South Africa Standard Time
-      Windhoek: Namibia Standard Time
-    America:
-      Araguaina: SA Eastern Standard Time
-      Asuncion: Central Brazilian Standard Time
-      Bogota: SA Pacific Standard Time
-      Caracas: Venezuela Standard Time
-      Chihuahua: Mountain Standard Time (Mexico)
-      Cuiaba: Central Brazilian Standard Time
-      Denver: Mountain Standard Time
-      Fortaleza: SA Eastern Standard Time
-      Guatemala: Central America Standard Time
-      Halifax: Atlantic Standard Time
-      Manaus: SA Western Standard Time
-      Matamoros: Central Standard Time
-      Monterrey: Central Standard Time (Mexico)
-      Montevideo: SA Eastern Standard Time
-      Phoenix: US Mountain Standard Time
-      Santiago: Pacific SA Standard Time
-      Tijuana: Pacific Standard Time
-    Asia:
-      Amman: Jordan Standard Time
-      Ashgabat: West Asia Standard Time
-      Baghdad: Arabian Standard Time
-      Baku: Azerbaijan Standard Time
-      Bangkok: SE Asia Standard Time
-      Beirut: Middle East Standard Time
-      Calcutta: India Standard Time
-      Damascus: Middle East Standard Time
-      Dhaka: Central Asia Standard Time
-      Irkutsk: North Asia East Standard Time
-      Jerusalem: Israel Standard Time
-      Kabul: Afghanistan Standard Time
-      Karachi: Pakistan Standard Time
-      Kathmandu: Nepal Standard Time
-      Krasnoyarsk: North Asia Standard Time
-      Magadan: Central Pacific Standard Time
-      Muscat: Arabian Standard Time
-      Novosibirsk: N. Central Asia Standard Time
-      Riyadh: Arabian Standard Time
-      Seoul: Korea Standard Time
-      Shanghai: China Standard Time
-      Singapore: Singapore Standard Time
-      Taipei: Taipei Standard Time
-      Tehran: Iran Standard Time
-      Tokyo: Tokyo Standard Time
-      Ulaanbaatar: North Asia East Standard Time
-      Vladivostok: Vladivostok Standard Time
-      Yakutsk: Yakutsk Standard Time
-      Yerevan: Caucasus Standard Time
-    Atlantic:
-      Azores: Cape Verde Standard Time
-    Australia:
-      Adelaide: AUS Eastern Standard Time
-      Brisbane: E. Australia Standard Time
-      Darwin: AUS Eastern Standard Time
-      Hobart: Tasmania Standard Time
-      Perth: W. Australia Standard Time
-      Sydney: AUS Eastern Standard Time
-    Brazil:
-      East: E. South America Standard Time
-    Canada:
-      Newfoundland: Newfoundland Standard Time
-      Saskatchewan: Canada Central Standard Time
-      Yukon: Pacific Standard Time
-    Europe:
-      Amsterdam: W. Europe Standard Time
-      Athens: GTB Standard Time
-      Dublin: GMT Standard Time
-      Helsinki: FLE Standard Time
-      Istanbul: Turkey Standard Time
-      Kaliningrad: E. Europe Standard Time
-      Moscow: Russian Standard Time
-      Paris: Romance Standard Time
-      Prague: Central Europe Standard Time
-      Sarajevo: Central European Standard Time
-    Pacific:
-      Auckland: New Zealand Standard Time
-      Fiji: Fiji Standard Time
-      Guam: West Pacific Standard Time
-      Honolulu: Hawaiian Standard Time
-      Samoa: Samoa Standard Time
-    US:
-      Alaska: Alaskan Standard Time
-      Central: Central Standard Time
-      Eastern: Eastern Standard Time
-      Pacific: Pacific Standard Time
 Parameters:
   DirectoryServiceId:
     Description: Prefered AWS AD Id. Must belong mentioned VPC.
@@ -214,8 +120,8 @@ Parameters:
     Type: String
     Default: US/Pacific
     Description: >-
-      Time zone for the EC2 instance and RDS databases.
-      For MSSQL RDS, the timezone is automatically mapped to Windows format.
+      Time zone for the EC2 instance and the PostgreSQL/MySQL RDS databases.
+      For MSSQL RDS, set the Windows time zone separately in the MssqlRdsTimezone parameter.
     AllowedValues:
       - Africa/Cairo
       - Africa/Casablanca
@@ -303,6 +209,84 @@ Parameters:
       - US/Eastern
       - US/Pacific
       - UTC
+  MssqlRdsTimezone:
+    Type: String
+    Default: UTC
+    Description: >-
+      Windows time zone name for MSSQL RDS (used only when DictionaryType or
+      AuditType is MSSQL). If unsure, leave UTC.
+    AllowedValues:
+      - AUS Eastern Standard Time
+      - Afghanistan Standard Time
+      - Alaskan Standard Time
+      - Arabian Standard Time
+      - Atlantic Standard Time
+      - Azerbaijan Standard Time
+      - Canada Central Standard Time
+      - Cape Verde Standard Time
+      - Caucasus Standard Time
+      - Central America Standard Time
+      - Central Asia Standard Time
+      - Central Brazilian Standard Time
+      - Central Europe Standard Time
+      - Central European Standard Time
+      - Central Pacific Standard Time
+      - Central Standard Time
+      - Central Standard Time (Mexico)
+      - China Standard Time
+      - E. Africa Standard Time
+      - E. Australia Standard Time
+      - E. Europe Standard Time
+      - E. South America Standard Time
+      - Eastern Standard Time
+      - Egypt Standard Time
+      - FLE Standard Time
+      - Fiji Standard Time
+      - GMT Standard Time
+      - GTB Standard Time
+      - Greenwich Standard Time
+      - Hawaiian Standard Time
+      - India Standard Time
+      - Iran Standard Time
+      - Israel Standard Time
+      - Jordan Standard Time
+      - Korea Standard Time
+      - Middle East Standard Time
+      - Mountain Standard Time
+      - Mountain Standard Time (Mexico)
+      - N. Central Asia Standard Time
+      - Namibia Standard Time
+      - Nepal Standard Time
+      - New Zealand Standard Time
+      - Newfoundland Standard Time
+      - North Asia East Standard Time
+      - North Asia Standard Time
+      - Pacific SA Standard Time
+      - Pacific Standard Time
+      - Pakistan Standard Time
+      - Romance Standard Time
+      - Russian Standard Time
+      - SA Eastern Standard Time
+      - SA Pacific Standard Time
+      - SA Western Standard Time
+      - SE Asia Standard Time
+      - Samoa Standard Time
+      - Singapore Standard Time
+      - South Africa Standard Time
+      - Taipei Standard Time
+      - Tasmania Standard Time
+      - Tokyo Standard Time
+      - Turkey Standard Time
+      - US Eastern Standard Time
+      - US Mountain Standard Time
+      - UTC
+      - Venezuela Standard Time
+      - Vladivostok Standard Time
+      - W. Australia Standard Time
+      - W. Europe Standard Time
+      - West Asia Standard Time
+      - West Pacific Standard Time
+      - Yakutsk Standard Time
   DictionaryType:
     Type: String
     Default: Postgres
@@ -795,9 +779,6 @@ Rules:
                 - !Equals [!Ref DictionaryDBClass, db.t4g.2xlarge]
         AssertDescription: "SQL Server SE does not support burstable instance types (t2, t3, t4g). Please select m5, m6i, or r5 instance class for Dictionary database."
 Conditions:
-  IsUTC: !Equals [!Ref TimeZone, UTC]
-  IsBuenosAires: !Equals [!Ref TimeZone, 'America/Buenos_Aires']
-  IsEastIndiana: !Equals [!Ref TimeZone, 'US/East-Indiana']
   HasS3Name: !Not [!Equals ['', !Ref BackupS3BucketName]]
   HasNoAlarm: !Equals ['', !Ref AlarmEmail]
   HasAlarm: !Not [!Equals ['', !Ref AlarmEmail]]
@@ -856,6 +837,7 @@ Metadata:
           - DictionaryDBStorageSize
           - DBDictName
           - MultiAzDictionary
+          - MssqlRdsTimezone
           - AuditType
           - AuditDBClass
           - AuditDBStorageSize
@@ -1461,19 +1443,7 @@ Resources:
       DBParameterGroupName: !If [DictionaryPostgres, !Ref DSParameterGroupPostgres, !If [DictionaryMysql, !Ref DSParameterGroupMysql, !Ref DSParameterGroupMssqlDictionary]]
       Timezone: !If
         - DictionaryMssql
-        - !If
-          - IsUTC
-          - UTC
-          - !If
-            - IsBuenosAires
-            - SA Eastern Standard Time
-            - !If
-              - IsEastIndiana
-              - US Eastern Standard Time
-              - !FindInMap
-                - TimezoneMap
-                - !Select [0, !Split ["/", !Ref TimeZone]]
-                - !Select [1, !Split ["/", !Ref TimeZone]]
+        - !Ref MssqlRdsTimezone
         - !Ref 'AWS::NoValue'
       StorageEncrypted: !If [DictionaryMssql, !Ref 'AWS::NoValue', 'True']
       StorageType: gp3
@@ -1507,19 +1477,7 @@ Resources:
       DBParameterGroupName: !If [AuditPostgres, !Ref DSParameterGroupPostgres, !If [AuditMysql, !Ref DSParameterGroupMysql, !Ref DSParameterGroupMssqlAudit]]
       Timezone: !If
         - AuditMssql
-        - !If
-          - IsUTC
-          - UTC
-          - !If
-            - IsBuenosAires
-            - SA Eastern Standard Time
-            - !If
-              - IsEastIndiana
-              - US Eastern Standard Time
-              - !FindInMap
-                - TimezoneMap
-                - !Select [0, !Split ["/", !Ref TimeZone]]
-                - !Select [1, !Split ["/", !Ref TimeZone]]
+        - !Ref MssqlRdsTimezone
         - !Ref 'AWS::NoValue'
       StorageEncrypted: 'True'
       StorageType: gp3
