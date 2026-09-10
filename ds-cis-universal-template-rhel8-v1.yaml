@@ -3,61 +3,61 @@ Description: DataSunrise Database and Data Security - Network Load Balancer univ
 Mappings:
   RegionMap:
     eu-central-1:
-      AMI: ami-048732ae0998f2c23
+      AMI: ami-0dbd3902c6bd55933
     ap-south-2:
-      AMI: ami-01aebb475028df666
+      AMI: ami-020ebeb690b57474d
     ap-south-1:
-      AMI: ami-002d1ce69de550a66
+      AMI: ami-04ca677cea6ce04f6
     eu-south-1:
-      AMI: ami-023195f755b0aae22
+      AMI: ami-074ce0573850b2aed
     eu-south-2:
-      AMI: ami-0a8141fdc4a715f82
+      AMI: ami-06f4ae453a3bd121c
     me-central-1:
-      AMI: ami-00cf5869fe941ce7a
+      AMI: ami-0b999f17ba0b9e5b2
     il-central-1:
-      AMI: ami-0933e629c5b4e5c0c
+      AMI: ami-0a8dc1e29e53e03d2
     ca-central-1:
-      AMI: ami-0d940828c1fb97cda
+      AMI: ami-09042aa899b970d4d
     eu-central-2:
-      AMI: ami-01ae1a0fd38f27881
+      AMI: ami-06264e44645977abe
     us-west-1:
-      AMI: ami-0b52f93792cb55b3d
+      AMI: ami-095daed27441c9580
     us-west-2:
-      AMI: ami-04b2ca9604ad3303d
+      AMI: ami-0166ee1f3e7695de6
     af-south-1:
-      AMI: ami-072711cef694d2b08
+      AMI: ami-03f3c0d15e29a8b0b
     eu-north-1:
-      AMI: ami-0353f8984f04400ce
+      AMI: ami-0f1923c2ab2447879
     eu-west-3:
-      AMI: ami-074c933abc49ef5f1
+      AMI: ami-0044904ef7d284a92
     eu-west-2:
-      AMI: ami-07fbbcdbc8168d654
+      AMI: ami-058712c7619c85939
     eu-west-1:
-      AMI: ami-09f599b33bc6a040e
+      AMI: ami-04fdf9745024f2acd
     ap-northeast-3:
-      AMI: ami-00c4aec2512e41822
+      AMI: ami-0dbe049b8bdf76b7f
     ap-northeast-2:
-      AMI: ami-05f23cff608f8cbc8
+      AMI: ami-09c4a2eb4d25d9911
     ap-northeast-1:
-      AMI: ami-0660184a4a05a65ab
+      AMI: ami-02115798b9bd745eb
     sa-east-1:
-      AMI: ami-0f40990063b69259e
+      AMI: ami-0a704eac4a84a4ce1
     ap-east-1:
-      AMI: ami-0acf3acdb94b1a893
+      AMI: ami-0a74cd4a8cdc023bb
     ca-west-1:
-      AMI: ami-0cd2c0b7514c95aff
+      AMI: ami-0c43880a820622956
     ap-southeast-1:
-      AMI: ami-0b52a13704787d539
+      AMI: ami-09bfb2448a27c4b40
     ap-southeast-2:
-      AMI: ami-052774059b84f40f5
+      AMI: ami-00a7d01cad73079c2
     ap-southeast-3:
-      AMI: ami-0f185da2ceafb93e8
+      AMI: ami-050ce338741ffdb94
     ap-southeast-4:
-      AMI: ami-022883beeb0414c81
+      AMI: ami-0f48f77ff7c2545bd
     us-east-1:
-      AMI: ami-0fcde6640c465c605
+      AMI: ami-0b5e7a307c85d702c
     us-east-2:
-      AMI: ami-06bf0acb85ab4ee15
+      AMI: ami-0c19ebd21a3f1426b
   Consts:
     V1:
       CARProductCode: 88q6e9h0zcpo4hpvxrxtlglgd
