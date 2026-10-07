@@ -2158,6 +2158,21 @@ Resources:
                     restorecon -vRF /opt/datasunrise/ > /dev/null
                     semanage port -a -t datasunrise_port_t -p tcp 11000-11010
                     semanage port -a -t datasunrise_port_t -p tcp $TRG_DBPORT
+                    log "Opening the console and proxy ports"
+                    # This template had no firewall step at all, while the AL2
+                    # and RHEL7 ones at least attempt it. It did not matter while
+                    # the base image shipped without firewalld running; the CIS
+                    # hardening turns it on, and the default zone admits only
+                    # ssh, so the console and every proxy port came up closed and
+                    # had to be opened by hand over ssh after each deploy.
+                    if command -v firewall-cmd > /dev/null 2>&1 && systemctl is-active --quiet firewalld
+                    then
+                        FWZONE=$(firewall-cmd --get-default-zone)
+                        firewall-cmd --permanent --zone="$FWZONE" --add-port=11000-11010/tcp
+                        firewall-cmd --permanent --zone="$FWZONE" --add-port=$TRG_DBPORT/tcp
+                        firewall-cmd --reload
+                        firewall-cmd --zone="$FWZONE" --list-all
+                    fi
                     log "Turning on DataSunrise service"
                     systemctl enable datasunrise
                     local AF_GCNF=/etc/datasunrise.conf
