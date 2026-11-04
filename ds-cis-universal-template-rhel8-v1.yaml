@@ -12,8 +12,6 @@ Mappings:
       AMI: ami-0066f73960436b06c
     eu-south-2:
       AMI: ami-0fa47ae5136597ef6
-    me-central-1:
-      AMI: ami-08dce1c9425a4583f
     il-central-1:
       AMI: ami-074f5784e321c64bf
     ca-central-1:
